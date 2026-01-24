@@ -1,347 +1,381 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#0f172a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Tubero Pro Elite v19.0 - XURXO</title>
+import React, { useState, useRef } from 'react';
+import { jsPDF } from "jspdf";
+import { 
+  Calculator, 
+  Ruler, 
+  FileText, 
+  ChevronRight, 
+  Download, 
+  Settings,
+  CornerUpRight,
+  Maximize,
+  Pipette
+} from 'lucide-react';
+
+const App = () => {
+  const [activeTab, setActiveTab] = useState('bayonetas');
+  const [unit, setUnit] = useState('mm');
+
+  // Estados para Bayonetas
+  const [bayoneta, setBayoneta] = useState({
+    desplazamiento: '',
+    avance: '',
+    angulo: '45',
+    niple: 0,
+    recorrido: 0
+  });
+
+  // Estados para Codos
+  const [codo, setCodo] = useState({
+    diametro: '',
+    radio: '1.5', // 1.5D por defecto (Radio Largo)
+    grados: '90',
+    avance: 0,
+    desarrollo: 0
+  });
+
+  // --- LÓGICA DE CÁLCULOS ---
+
+  const calcularBayoneta = (e) => {
+    const { name, value } = e.target;
+    const newData = { ...bayoneta, [name]: value };
     
-    <!-- Librerías -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    const A = parseFloat(newData.desplazamiento);
+    const B = parseFloat(newData.avance);
+    const ang = parseFloat(newData.angulo) * (Math.PI / 180);
 
-    <style>
-        :root {
-            --bg-body: #0f172a;
-            --primary: #1e293b;
-            --accent: #f59e0b;
-            --blue-pro: #0284c7;
-            --text-main: #334155;
-            --text-light: #94a3b8;
-            --workshop-green: #059669;
-            --pdf-red: #ef4444;
-            --error-red: #b91c1c;
-        }
+    if (A > 0 && ang > 0) {
+      const rec = A / Math.sin(ang);
+      const avanceCalculado = A / Math.tan(ang);
+      newData.recorrido = rec.toFixed(2);
+      if (!newData.avance) newData.avance = avanceCalculado.toFixed(2);
+    }
+    
+    setBayoneta(newData);
+  };
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+  const calcularCodo = (e) => {
+    const { name, value } = e.target;
+    const newData = { ...codo, [name]: value };
+    
+    const D = parseFloat(newData.diametro);
+    const R = parseFloat(newData.radio); // Multiplicador del diámetro
+    const G = parseFloat(newData.grados);
 
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-            overflow-x: hidden;
-        }
+    if (D > 0 && G > 0) {
+      // Avance = R * D * tan(G/2)
+      const radioEfectivo = D * R;
+      const avance = radioEfectivo * Math.tan((G / 2) * (Math.PI / 180));
+      const desarrollo = (2 * Math.PI * radioEfectivo * G) / 360;
+      
+      newData.avance = avance.toFixed(2);
+      newData.desarrollo = desarrollo.toFixed(2);
+    }
+    
+    setCodo(newData);
+  };
 
-        /* --- SPLASH SCREEN --- */
-        #splash-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000; transition: opacity 0.8s ease, visibility 0.8s; color: white;
-        }
+  // --- EXPORTACIÓN PDF ---
 
-        .splash-logo { font-size: 3rem; font-weight: 900; color: var(--accent); animation: fadeInDown 1s ease forwards; }
+  const exportarPDF = (tipo, formato = 'a4') => {
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: formato
+    });
 
-        /* --- APP CONTAINER --- */
-        .app-container {
-            width: 100%; max-width: 500px;
-            background: #f1f5f9; min-height: 95vh;
-            border-radius: 20px; overflow: hidden;
-            display: flex; flex-direction: column;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            position: relative;
-        }
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
-        header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white; padding: 25px 15px; text-align: center; border-bottom: 4px solid var(--accent);
-        }
+    // Estilo de Cabecera
+    doc.setFillColor(30, 64, 175);
+    doc.rect(0, 0, pageWidth, 25, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.text("TUBERO PRO - PLANTILLA TÉCNICA", 15, 17);
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, pageWidth - 50, 40);
+    doc.text(`Formato: ${formato.toUpperCase()} Apaisado`, 15, 40);
 
-        .owner-badge {
-            background: var(--accent); color: #000; padding: 4px 15px; border-radius: 50px;
-            font-size: 0.75rem; font-weight: 800; display: inline-block; margin-top: 8px;
-        }
+    if (tipo === 'bayoneta') {
+      doc.setFontSize(16);
+      doc.text("CÁLCULO DE BAYONETA", 15, 55);
+      doc.setLineWidth(0.5);
+      doc.line(15, 58, 80, 58);
 
-        /* --- PWA INSTALL BANNER --- */
-        #install-banner {
-            display: none;
-            background: var(--blue-pro);
-            color: white; padding: 15px; text-align: center;
-            font-weight: bold; cursor: pointer; border-bottom: 2px solid rgba(255,255,255,0.2);
-        }
+      const data = [
+        ["Concepto", "Valor", "Unidad"],
+        ["Desplazamiento (Vertical)", bayoneta.desplazamiento, unit],
+        ["Avance (Horizontal)", bayoneta.avance, unit],
+        ["Ángulo", bayoneta.angulo, "°"],
+        ["Recorrido (Centro a Centro)", bayoneta.recorrido, unit]
+      ];
 
-        .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: #1e293b; gap: 1px; }
-        .tab-btn {
-            background: #1e293b; border: none; color: #94a3b8; padding: 12px 5px;
-            cursor: pointer; display: flex; flex-direction: column; align-items: center;
-            font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
-        }
-        .tab-btn svg { width: 18px; height: 18px; fill: currentColor; margin-bottom: 4px; }
-        .tab-btn.active { color: var(--accent); background: #334155; border-bottom: 3px solid var(--accent); }
+      let y = 70;
+      data.forEach(([label, val, u]) => {
+        doc.text(`${label}:`, 15, y);
+        doc.text(`${val} ${u}`, 80, y);
+        y += 10;
+      });
 
-        .main-content { flex: 1; padding: 15px; overflow-y: auto; }
-        .section { display: none; }
-        .section.active { display: block; }
+      // Dibujo esquemático simple
+      doc.setLineWidth(1);
+      doc.line(120, 130, 200, 130); // Base
+      doc.line(200, 130, 250, 80);  // Diagonal
+      doc.line(250, 80, 280, 80);   // Salida
+      doc.text("Esquema de Montaje", 120, 70);
+      
+    } else {
+      doc.setFontSize(16);
+      doc.text("CÁLCULO DE CODO", 15, 55);
+      doc.setLineWidth(0.5);
+      doc.line(15, 58, 80, 58);
 
-        .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .input-group { margin-bottom: 12px; }
-        .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase; }
-        .input-group input, .input-group select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; }
+      const data = [
+        ["Concepto", "Valor", "Unidad"],
+        ["Diámetro Exterior", codo.diametro, unit],
+        ["Radio (Factor D)", codo.radio, ""],
+        ["Grados", codo.grados, "°"],
+        ["Avance (Centro-Cara)", codo.avance, unit],
+        ["Desarrollo de Arco", codo.desarrollo, unit]
+      ];
 
-        .btn-main {
-            background: var(--blue-pro); color: white; border: none; width: 100%; padding: 15px;
-            border-radius: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
+      let y = 70;
+      data.forEach(([label, val, u]) => {
+        doc.text(`${label}:`, 15, y);
+        doc.text(`${val} ${u}`, 80, y);
+        y += 10;
+      });
+    }
 
-        .canvas-wrap { background: #0f172a; border-radius: 15px; margin-top: 15px; padding: 15px; border: 1px solid #334155; }
-        .canvas-label { font-size: 0.65rem; color: var(--accent); font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Documento generado por Tubero Pro App. Verifique medidas en campo.", 15, pageHeight - 10);
 
-        .radio-group { display: flex; gap: 8px; }
-        .radio-btn { flex: 1; padding: 12px; background: #e2e8f0; border-radius: 10px; text-align: center; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
-        .radio-btn.active { background: var(--blue-pro); color: white; }
+    doc.save(`TuberoPro_Plantilla_${tipo}_${formato}.pdf`);
+  };
 
-        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .data-table th { background: #1e293b; color: white; padding: 10px; }
-        .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 600; }
+  return (
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+      {/* Navbar Superior */}
+      <nav className="bg-blue-800 text-white shadow-xl sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="bg-white p-2 rounded-lg">
+              <Pipette className="text-blue-800 h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-white">TUBERO PRO</h1>
+              <p className="text-[10px] uppercase tracking-widest text-blue-200">Engineering Toolbox</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setUnit(unit === 'mm' ? 'in' : 'mm')}
+              className="bg-blue-700 px-3 py-1 rounded text-xs font-bold border border-blue-500 hover:bg-blue-600 transition"
+            >
+              UNIDAD: {unit.toUpperCase()}
+            </button>
+          </div>
+        </div>
+      </nav>
 
-        #loading-overlay {
-            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white;
-        }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+      {/* Selector de Pestañas */}
+      <div className="bg-white border-b border-gray-200 overflow-x-auto">
+        <div className="max-w-6xl mx-auto flex">
+          {[
+            { id: 'bayonetas', label: 'Bayonetas', icon: CornerUpRight },
+            { id: 'codos', label: 'Codos', icon: Maximize },
+            { id: 'exportar', label: 'Exportar PDF', icon: FileText },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-all border-b-2 whitespace-nowrap ${
+                activeTab === tab.id 
+                ? 'border-blue-600 text-blue-600 bg-blue-50' 
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <tab.icon size={18} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <main className="max-w-6xl mx-auto p-4 md:p-8">
         
-        .sling-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; background: white; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; }
-    </style>
-</head>
-<body>
-
-<div id="splash-screen">
-    <div class="splash-logo">TUBERO PRO</div>
-    <div style="font-weight: 300; letter-spacing: 3px; margin-top: 10px;">OFICIAL: XURXO</div>
-</div>
-
-<div id="loading-overlay"><div class="spinner"></div><p style="margin-top:15px">GENERANDO PDF...</p></div>
-
-<div class="app-container" id="capture-area">
-    <div id="install-banner" onclick="installApp()">📲 INSTALAR TUBERO PRO EN EL MÓVIL</div>
-    
-    <header>
-        <h1>TUBERO PRO</h1>
-        <div class="owner-badge">EDICIÓN ELITE v19.0</div>
-    </header>
-
-    <nav class="nav-tabs" id="nav-ignore">
-        <button class="tab-btn active" onclick="setTab('tab-bocapez', this)"><svg viewBox="0 0 24 24"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z"/></svg>Boca Pez</button>
-        <button class="tab-btn" onclick="setTab('tab-bridas', this)"><svg viewBox="0 0 24 24"><path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5Z"/></svg>Bridas</button>
-        <button class="tab-btn" onclick="setTab('tab-pesos', this)"><svg viewBox="0 0 24 24"><path d="M12,3L1,9L12,15L21,10V17H23V9M5,13V17L12,21L19,17V13L12,17L5,13Z"/></svg>Pesos</button>
-    </nav>
-
-    <div class="main-content">
-        <!-- BOCA PEZ -->
-        <div id="tab-bocapez" class="section active">
-            <div class="card" id="form-ignore">
-                <div class="input-group">
-                    <label>Cabezal (OD)</label>
-                    <select id="bpC">
-                        <option value="4">4" (114.3mm)</option>
-                        <option value="6" selected>6" (168.3mm)</option>
-                        <option value="8">8" (219.1mm)</option>
-                        <option value="10">10" (273.0mm)</option>
-                        <option value="12">12" (323.8mm)</option>
-                    </select>
+        {/* VISTA: BAYONETAS */}
+        {activeTab === 'bayonetas' && (
+          <div className="grid md:grid-cols-2 gap-8 animate-in fade-in duration-500">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <div className="w-2 h-8 bg-blue-600 rounded-full"></div>
+                Cálculo de Bayoneta Simple
+              </h2>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Desplazamiento (A)</label>
+                  <input 
+                    type="number" name="desplazamiento" value={bayoneta.desplazamiento} onChange={calcularBayoneta}
+                    placeholder="Eje a Eje" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
                 </div>
-                <div class="input-group">
-                    <label>Ramal (OD)</label>
-                    <select id="bpR">
-                        <option value="2">2" (60.3mm)</option>
-                        <option value="3">3" (88.9mm)</option>
-                        <option value="4" selected>4" (114.3mm)</option>
-                        <option value="6">6" (168.3mm)</option>
-                    </select>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Ángulo de Accesorios (°)</label>
+                  <select 
+                    name="angulo" value={bayoneta.angulo} onChange={calcularBayoneta}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="11.25">11.25°</option>
+                    <option value="22.5">22.5°</option>
+                    <option value="30">30°</option>
+                    <option value="45">45°</option>
+                    <option value="60">60°</option>
+                    <option value="90">90°</option>
+                  </select>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-                    <div class="input-group"><label>Ángulo (°)</label><input type="number" id="bpAng" value="90"></div>
-                    <div class="input-group">
-                        <label>Divisiones</label>
-                        <select id="bpDiv"><option value="8">8 Divisiones</option><option value="16" selected>16 Divisiones</option></select>
-                    </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Avance Horizontal (B)</label>
+                  <input 
+                    type="number" name="avance" value={bayoneta.avance} onChange={calcularBayoneta}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                  />
                 </div>
-                <button class="btn-main" onclick="calcBP()">CALCULAR TRAZADO</button>
+              </div>
             </div>
 
-            <div id="resBP" style="display:none">
-                <div class="canvas-wrap">
-                    <div class="canvas-label">Vista Previa</div>
-                    <svg id="bpSvg" viewBox="0 0 400 160" style="width:100%"></svg>
+            <div className="bg-blue-900 text-white p-8 rounded-2xl shadow-xl flex flex-col justify-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <CornerUpRight size={120} />
+              </div>
+              <h3 className="text-blue-300 font-bold uppercase tracking-widest text-sm mb-4">Resultados de Corte</h3>
+              <div className="space-y-6">
+                <div>
+                  <p className="text-blue-400 text-xs">RECORRIDO (CENTRO A CENTRO)</p>
+                  <p className="text-5xl font-black">{bayoneta.recorrido} <span className="text-xl font-normal">{unit}</span></p>
                 </div>
-                <div class="card" style="margin-top:15px">
-                    <table class="data-table" id="tableBP">
-                        <thead><tr><th>PTO</th><th>ORD (mm)</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+                <div className="pt-4 border-t border-blue-800">
+                  <p className="text-xs text-blue-300 italic">* Para obtener el niple, reste el avance de los dos accesorios usados.</p>
                 </div>
-                <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfInforme()">DESCARGAR FICHA PDF</button>
+              </div>
             </div>
-        </div>
+          </div>
+        )}
 
-        <!-- BRIDAS -->
-        <div id="tab-bridas" class="section">
-            <div class="card">
-                <div class="input-group"><label>NPS</label>
-                    <select id="brSize">
-                        <option value="2">2"</option><option value="4" selected>4"</option>
-                        <option value="6">6"</option><option value="8">8"</option><option value="12">12"</option>
-                    </select>
+        {/* VISTA: CODOS */}
+        {activeTab === 'codos' && (
+          <div className="grid md:grid-cols-2 gap-8 animate-in fade-in duration-500">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <div className="w-2 h-8 bg-orange-500 rounded-full"></div>
+                Avance de Codos
+              </h2>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Diámetro Exterior ({unit})</label>
+                  <input 
+                    type="number" name="diametro" value={codo.diametro} onChange={calcularCodo}
+                    placeholder="ej. 114.3" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                  />
                 </div>
-                <div class="input-group"><label>Clase</label>
-                    <select id="brClass"><option value="150">150#</option><option value="300">300#</option></select>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo de Radio</label>
+                  <select 
+                    name="radio" value={codo.radio} onChange={calcularCodo}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                  >
+                    <option value="1.5">Radio Largo (1.5D)</option>
+                    <option value="1">Radio Corto (1.0D)</option>
+                    <option value="3">Radio 3D</option>
+                    <option value="5">Radio 5D</option>
+                  </select>
                 </div>
-                <button class="btn-main" onclick="getBrida()">CONSULTAR ASME B16.5</button>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Grados del Codo (°)</label>
+                  <input 
+                    type="number" name="grados" value={codo.grados} onChange={calcularCodo}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                  />
+                </div>
+              </div>
             </div>
-            <div id="brRes" class="card" style="display:none">
-                <table class="data-table">
-                    <tr><td>Exterior (OD)</td><td id="brOD">0</td></tr>
-                    <tr><td>Centros (BC)</td><td id="brBC">0</td></tr>
-                    <tr><td>Agujeros</td><td id="brH">0</td></tr>
-                    <tr><td>Llave</td><td id="brW">0</td></tr>
-                </table>
-            </div>
-        </div>
 
-        <!-- PESOS -->
-        <div id="tab-pesos" class="section">
-            <div class="card">
-                <div class="input-group"><label>Tubería</label>
-                    <select id="pD"><option value="4">4"</option><option value="6" selected>6"</option><option value="8">8"</option></select>
+            <div className="bg-orange-600 text-white p-8 rounded-2xl shadow-xl flex flex-col justify-center">
+              <h3 className="text-orange-200 font-bold uppercase tracking-widest text-sm mb-6">Datos de Fabricación</h3>
+              <div className="grid grid-cols-1 gap-8">
+                <div>
+                  <p className="text-orange-100 text-xs uppercase">Avance (Centro a Cara)</p>
+                  <p className="text-4xl font-black">{codo.avance} <span className="text-lg font-normal">{unit}</span></p>
                 </div>
-                <div class="input-group"><label>Schedule</label>
-                    <select id="pS"><option value="40">Sch 40</option><option value="80">Sch 80</option></select>
+                <div>
+                  <p className="text-orange-100 text-xs uppercase">Desarrollo de Arco (Línea Central)</p>
+                  <p className="text-4xl font-black">{codo.desarrollo} <span className="text-lg font-normal">{unit}</span></p>
                 </div>
-                <div class="input-group"><label>Metros</label><input type="number" id="pL" value="1"></div>
-                <button class="btn-main" onclick="calcPeso()">CALCULAR PESO</button>
-                <div id="resP" style="display:none; text-align:center; font-size:2rem; font-weight:900; margin-top:15px; color:var(--blue-pro);">0 Kg</div>
+              </div>
             </div>
-        </div>
+          </div>
+        )}
+
+        {/* VISTA: EXPORTAR */}
+        {activeTab === 'exportar' && (
+          <div className="max-w-2xl mx-auto text-center space-y-8 animate-in zoom-in duration-300">
+            <div className="bg-blue-50 p-8 rounded-3xl border-2 border-dashed border-blue-200">
+              <FileText className="mx-auto text-blue-400 mb-4" size={48} />
+              <h2 className="text-2xl font-bold text-blue-900">Generador de Plantillas</h2>
+              <p className="text-blue-700 mt-2">Exporta tus cálculos actuales a un PDF técnico listo para imprimir y llevar a la obra.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4">
+                <h3 className="font-bold text-gray-800">Plantilla Bayoneta</h3>
+                <button 
+                  onClick={() => exportarPDF('bayoneta', 'a4')}
+                  className="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition"
+                >
+                  <Download size={18} /> A4 Apaisado
+                </button>
+                <button 
+                  onClick={() => exportarPDF('bayoneta', 'a3')}
+                  className="flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-bold hover:bg-blue-50 transition"
+                >
+                  <Download size={18} /> A3 Apaisado
+                </button>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4">
+                <h3 className="font-bold text-gray-800">Plantilla de Codo</h3>
+                <button 
+                  onClick={() => exportarPDF('codo', 'a4')}
+                  className="flex items-center justify-center gap-2 bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition"
+                >
+                  <Download size={18} /> A4 Apaisado
+                </button>
+                <button 
+                  onClick={() => exportarPDF('codo', 'a3')}
+                  className="flex items-center justify-center gap-2 border-2 border-orange-600 text-orange-600 py-3 rounded-xl font-bold hover:bg-orange-50 transition"
+                >
+                  <Download size={18} /> A3 Apaisado
+                </button>
+              </div>
+            </div>
+            
+            <p className="text-sm text-gray-400 italic">
+              * Nota: Para imprimir en formato "fragmentado" (tiled), use la opción "Poster" en su lector de PDF al imprimir.
+            </p>
+          </div>
+        )}
+      </main>
+
+      {/* Footer Fijo para Móvil */}
+      <footer className="mt-auto border-t border-gray-200 bg-white p-6 text-center text-gray-400 text-xs">
+        <p>TUBERO PRO v2.5 | Diseñado para Ingeniería de Planta y Montaje</p>
+      </footer>
     </div>
-</div>
+  );
+};
 
-<script>
-    // --- LÓGICA PWA (AUTO-INSTALABLE) ---
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById('install-banner').style.display = 'block';
-    });
-
-    async function installApp() {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-            document.getElementById('install-banner').style.display = 'none';
-        }
-        deferredPrompt = null;
-    }
-
-    // --- CÁLCULOS TUBERO ---
-    const dbOD = {"2":60.3, "3":88.9, "4":114.3, "6":168.3, "8":219.1, "10":273.0, "12":323.8};
-    const dbBr = {"150":{"2":{od:152,bc:120.7,h:4,w:27},"4":{od:228,bc:190.5,h:8,w:27},"6":{od:279,bc:241.3,h:8,w:32}}};
-
-    function setTab(id, btn) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        btn.classList.add('active');
-    }
-
-    function calcBP() {
-        const cVal = document.getElementById('bpC').value;
-        const rVal = document.getElementById('bpR').value;
-        const ang = parseFloat(document.getElementById('bpAng').value);
-        const div = parseInt(document.getElementById('bpDiv').value);
-
-        const R_cab = dbOD[cVal] / 2;
-        const r_ram = dbOD[rVal] / 2;
-        const angRad = ang * Math.PI / 180;
-
-        let points = [];
-        let tbody = document.querySelector("#tableBP tbody");
-        tbody.innerHTML = "";
-
-        for(let i=0; i<=div; i++) {
-            let phi = (i * 360 / div) * Math.PI / 180;
-            let y = (Math.sqrt(Math.pow(R_cab, 2) - Math.pow(r_ram * Math.sin(phi), 2)) / Math.sin(angRad)) - (r_ram * Math.cos(phi) / Math.tan(angRad));
-            points.push(y);
-        }
-
-        const minY = Math.min(...points);
-        const finalPts = points.map(y => y - minY);
-
-        finalPts.forEach((p, i) => {
-            tbody.innerHTML += `<tr><td>${i}</td><td>${p.toFixed(1)}</td></tr>`;
-        });
-
-        drawSvg(finalPts, div);
-        document.getElementById('resBP').style.display = 'block';
-    }
-
-    function drawSvg(pts, div) {
-        const svg = document.getElementById('bpSvg');
-        const w = 400, step = w/div, scY = 100/Math.max(...pts);
-        let d = `M 0 ${150 - pts[0]*scY}`;
-        pts.forEach((p, i) => d += ` L ${i*step} ${150 - p*scY}`);
-        svg.innerHTML = `<path d="${d}" fill="none" stroke="#f59e0b" stroke-width="3" />`;
-    }
-
-    function getBrida() {
-        const s = document.getElementById('brSize').value;
-        const c = document.getElementById('brClass').value;
-        const data = dbBr[c] ? dbBr[c][s] : null;
-        if(data) {
-            document.getElementById('brRes').style.display = 'block';
-            document.getElementById('brOD').innerText = data.od + " mm";
-            document.getElementById('brBC').innerText = data.bc + " mm";
-            document.getElementById('brH').innerText = data.h;
-            document.getElementById('brW').innerText = data.w + " mm";
-        }
-    }
-
-    function calcPeso() {
-        const d = document.getElementById('pD').value;
-        const l = document.getElementById('pL').value;
-        const od = dbOD[d];
-        const wall = 6.02; // Simplificado
-        const kg = (od - wall) * wall * 0.02466 * l;
-        document.getElementById('resP').style.display = 'block';
-        document.getElementById('resPVal').innerText = kg.toFixed(1) + " Kg";
-    }
-
-    async function pdfInforme() {
-        document.getElementById('loading-overlay').style.display = 'flex';
-        const canvas = await html2canvas(document.getElementById('capture-area'));
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, 0);
-        pdf.save('Informe_Tubero.pdf');
-        document.getElementById('loading-overlay').style.display = 'none';
-    }
-
-    // Splash auto-hide
-    window.addEventListener('load', () => {
-        setTimeout(() => document.getElementById('splash-screen').style.display = 'none', 2000);
-    });
-</script>
-
-</body>
-
-</html> 
+export default App;
