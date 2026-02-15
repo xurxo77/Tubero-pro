@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v28.0 (CORTE TOTAL)</title>
+    <title>XURXO - Tubero Pro Elite v29.0 (CURVADO + 3D)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -123,14 +123,14 @@
 
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
-    <div class="splash-version">BUILD 2024 - v28.0 (SCISSOR READY)</div>
+    <div class="splash-version">BUILD 2024 - v29.0 (CURVADO + 3D)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">GENERANDO PDF DE CORTE</div>
+    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">PROCESANDO</div>
 </div>
 
 <div class="app-container" id="capture-area">
@@ -188,7 +188,7 @@
                 
                 <div class="card" id="btns-ignore">
                     <div class="input-group"><label>Formato de Papel</label><div class="radio-group"><div class="radio-btn active" id="formatA4" onclick="setFormat('a4')">A4</div><div class="radio-btn" id="formatA3" onclick="setFormat('a3')">A3</div></div></div>
-                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">EXPORTAR PLANTILLA (PERFILADO)</button>
+                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">EXPORTAR PLANTILLA (TIJERAS)</button>
                     <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">EXPORTAR INFORME</button>
                 </div>
 
@@ -201,26 +201,42 @@
             <h2>Cálculo de Bayonetas</h2>
             <div class="card">
                 <label class="switch-wrap"><span class="switch-label">ACTIVAR GIRADA (3D / ROLLING)</span><input type="checkbox" id="checkRolling" class="switch-checkbox" onchange="toggleRoll()"></label>
+                
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div class="input-group"><label style="color:#2563eb;">Avance (Run)</label><input type="number" id="byRun" placeholder="mm"></div>
                     <div class="input-group"><label style="color:#dc2626;">Altura (Set)</label><input type="number" id="bySet" placeholder="mm"></div>
                 </div>
+                
                 <div class="input-group" id="groupRoll" style="display:none; background:#e0f2fe; padding:10px; border-radius:10px; border:1px solid #7dd3fc;"><label style="color:#059669;">Desplazamiento (Roll)</label><input type="number" id="byRoll" placeholder="mm"></div>
+                
                 <div class="input-group"><label>Unidad Diámetro</label><div class="radio-group" style="margin-bottom:10px;"><div class="radio-btn active" id="btnDiaIn" onclick="toggleDiaUnit('in')">Pulgadas</div><div class="radio-btn" id="btnDiaMm" onclick="toggleDiaUnit('mm')">mm</div></div><div id="inputDiaIn"><select id="byDiaSel"><option value="2">2"</option><option value="4" selected>4"</option><option value="6">6"</option><option value="8">8"</option><option value="10">10"</option><option value="12">12"</option></select></div><div id="inputDiaMm" style="display:none;"><input type="number" id="byDiaInp" placeholder="Ej: 100"></div></div>
-                <div class="input-group"><label>Radio Codo</label><div class="radio-group"><div class="radio-btn active" id="byLR" onclick="setByRad('LR')">Largo</div><div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto</div></div></div>
+                
+                <div class="input-group">
+                    <label>Radio / Curvatura</label>
+                    <div class="radio-group">
+                        <div class="radio-btn active" id="byLR" onclick="setByRad('LR')">Largo</div>
+                        <div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto</div>
+                        <div class="radio-btn" id="byCust" onclick="setByRad('Cust')">Libre</div>
+                    </div>
+                </div>
+                <div class="input-group" id="groupCustRad" style="display:none; animation:fadeIn 0.3s; background:#fff7ed; padding:10px; border-radius:10px; border:1px solid var(--accent);">
+                    <label style="color:var(--accent);">Radio Personalizado (mm)</label>
+                    <input type="number" id="byRadVal" placeholder="Ej: 500 (Curvadora)">
+                </div>
+                
                 <button class="btn-main" style="margin-top:15px;" onclick="calcBayonetaPro()">Calcular Trazado</button>
             </div>
 
             <div id="resByPro" style="display:none;">
                 <div class="canvas-wrap" style="padding:10px;">
-                    <div class="canvas-label">Vista 3D Isométrica</div>
+                    <div class="canvas-label">Vista 3D Isométrica (Visualización Real)</div>
                     <svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:300px; box-shadow:inset 0 0 20px #0f172a;"></svg>
                 </div>
                 <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
                     <table class="data-table">
-                        <tr><td style="text-align:left; color:#166534;">Ángulo Codos</td><td style="font-weight:900; color:#166534; font-size:1.1rem;" id="outByAng">0°</td></tr>
+                        <tr><td style="text-align:left; color:#166534;">Ángulo Curva</td><td style="font-weight:900; color:#166534; font-size:1.1rem;" id="outByAng">0°</td></tr>
                         <tr><td style="text-align:left;">Recorrido (C-C)</td><td style="font-weight:bold;" id="outByTrav">0</td></tr>
-                        <tr><td style="text-align:left;">Avance Codo (x2)</td><td style="font-weight:bold; color:#ef4444;" id="outByDesc">0</td></tr>
+                        <tr><td style="text-align:left;">Desarrollo Curva (x2)</td><td style="font-weight:bold; color:#ef4444;" id="outByDesc">0</td></tr>
                         <tr style="background:#dcfce7;"><td style="text-align:left; font-weight:800; color:#15803d;">CARRETE (CORTE)</td><td style="font-weight:900; font-size:1.4rem; color:#15803d;" id="outByCut">0</td></tr>
                     </table>
                 </div>
@@ -245,7 +261,15 @@
     function getOD(i){const m={"2":60.3,"3":88.9,"4":114.3,"6":168.3,"8":219.1,"10":273.0,"12":323.8};return m[i]||i*25.4;}
     function setUn(u){unitBP=u;document.getElementById('unIn').classList.toggle('active',u==='in');document.getElementById('unMm').classList.toggle('active',u==='mm');}
     function setDiv(d){divBP=d;document.getElementById('div8').classList.toggle('active',d===8);document.getElementById('div16').classList.toggle('active',d===16);}
-    function setCo(t){coType=t;document.getElementById('coLR').classList.toggle('active',t==='LR');document.getElementById('coSR').classList.toggle('active',t==='SR');}
+    
+    // --- NUEVO SETTER PARA RADIO (INCLUYE LIBRE) ---
+    function setByRad(t){
+        coType=t;
+        document.getElementById('byLR').classList.toggle('active',t==='LR');
+        document.getElementById('bySR').classList.toggle('active',t==='SR');
+        document.getElementById('byCust').classList.toggle('active',t==='Cust');
+        document.getElementById('groupCustRad').style.display = (t==='Cust') ? 'block' : 'none';
+    }
 
     function calcBP(){
         let cIn=parseFloat(document.getElementById('bpC').value), rIn=parseFloat(document.getElementById('bpR').value), ang=parseFloat(document.getElementById('bpAng').value);
@@ -325,6 +349,7 @@
             }
             
             let pW=(exportFormat==='a3'?420:297)-40, nP=Math.ceil(lastBP.per/pW);
+            let totalHeight = Math.max(...lastBP.pts) + 5; 
             
             for(let p=0;p<nP;p++){
                 if(p>0)doc.addPage();
@@ -335,44 +360,35 @@
                 let start=p*pW, end=(p+1)*pW, yBase=180, mX=20;
                 let currentWidth = Math.min(pW, lastBP.per - start);
 
-                // --- DIBUJO DEL CONTORNO COMPLETO ---
-                doc.setDrawColor(0); doc.setLineWidth(1.0); // Linea gruesa para tijeras
-                
-                // 1. Linea Base (Suelo)
+                // --- DIBUJO DEL MARCO ---
+                doc.setDrawColor(0); doc.setLineWidth(0.3);
+                // Linea Suelo
                 doc.line(mX, yBase, mX + currentWidth, yBase);
-                
-                // 2. Lateral Izquierdo (Subida)
-                let hStart = getPointAt(start, hdPts);
-                doc.line(mX, yBase, mX, yBase - hStart);
-                
-                // 3. Lateral Derecho (Bajada)
-                let hEnd = getPointAt(start + currentWidth, hdPts);
-                doc.line(mX + currentWidth, yBase, mX + currentWidth, yBase - hEnd);
-                
-                // 4. Curva Superior (Techo)
-                let linesInPage = [];
+                // Linea Techo (Altura max)
+                doc.line(mX, yBase - totalHeight, mX + currentWidth, yBase - totalHeight);
+                // Cierres laterales de pagina
+                doc.line(mX, yBase, mX, yBase - totalHeight);
+                doc.line(mX + currentWidth, yBase, mX + currentWidth, yBase - totalHeight);
+
+                // --- CURVA CORTE ---
+                doc.setLineWidth(1.0); 
                 for(let i=0; i<hdPts.length-1; i++){
                     let p1=hdPts[i], p2=hdPts[i+1];
                     if(p2.x > start && p1.x < end){
-                        // Interpolar para ajustar a bordes de pagina si es necesario
-                        let x1_real = Math.max(start, p1.x);
-                        let x2_real = Math.min(end, p2.x);
-                        
-                        let y1_real = getPointAt(x1_real, hdPts);
-                        let y2_real = getPointAt(x2_real, hdPts);
-                        
-                        doc.line((x1_real-start)+mX, yBase-y1_real, (x2_real-start)+mX, yBase-y2_real);
+                        let x1=(Math.max(start, p1.x)-start)+mX, y1=yBase-getPointAt(Math.max(start, p1.x), hdPts);
+                        let x2=(Math.min(end, p2.x)-start)+mX, y2=yBase-getPointAt(Math.min(end, p2.x), hdPts);
+                        doc.line(x1,y1,x2,y2);
                     }
                 }
 
-                // 5. Linea de Referencia (Faja)
+                // Faja
                 doc.setLineWidth(0.3); doc.setLineDash([2,2],0); doc.setDrawColor(100);
                 let fy = yBase - lastBP.margin;
                 doc.line(mX, fy, mX+currentWidth, fy);
-                doc.setFontSize(8); doc.text(`Ref. ${lastBP.margin}mm`, mX+2, fy-2);
+                doc.text(`Ref. ${lastBP.margin}mm`, mX+2, fy-2);
                 doc.setLineDash([],0);
                 
-                // 6. Guías verticales
+                // Guías verticales
                 let qs = lastBP.per/4;
                 for(let q=0; q<=4; q++){
                     let qx = q*qs;
@@ -403,9 +419,11 @@
         document.getElementById('loading-overlay').style.display='none';
     }
 
+    // --- BAYONETA + RADIO LIBRE + 3D MASTER ---
     let byUnitDia='in';
     function toggleDiaUnit(u){byUnitDia=u;document.getElementById('btnDiaIn').classList.toggle('active',u==='in');document.getElementById('btnDiaMm').classList.toggle('active',u==='mm');document.getElementById('inputDiaIn').style.display=u==='in'?'block':'none';document.getElementById('inputDiaMm').style.display=u==='mm'?'block':'none';}
     function toggleRoll(){const c=document.getElementById('checkRolling').checked;document.getElementById('groupRoll').style.display=c?'block':'none';document.getElementById('byRoll').value='';}
+    
     function calcBayonetaPro(){
         const run=parseFloat(document.getElementById('byRun').value), set=parseFloat(document.getElementById('bySet').value);
         const isRolling=document.getElementById('checkRolling').checked, roll=parseFloat(document.getElementById('byRoll').value);
@@ -413,16 +431,30 @@
         if(isRolling){ if(!roll){showMsg("Falta Roll");return;} effSet=Math.sqrt(set*set+roll*roll); }
         let dBase=0; if(byUnitDia==='in') dBase=parseFloat(document.getElementById('byDiaSel').value)*25.4; else dBase=parseFloat(document.getElementById('byDiaInp').value);
         if(!run||!set||!dBase){showMsg("Faltan datos");return;}
+        
+        // CALCULO RADIO
+        let rad = 0;
+        if(coType==='LR') rad=dBase*1.5;
+        else if(coType==='SR') rad=dBase*1.0;
+        else {
+            rad = parseFloat(document.getElementById('byRadVal').value);
+            if(!rad || rad<=0){ showMsg("Introduce el Radio"); return; }
+        }
+
         const travel=Math.sqrt(run*run+effSet*effSet), angRad=Math.atan(effSet/run), angDeg=angRad*180/Math.PI;
-        const rad=(coType==='LR')?dBase*1.5:dBase, ded=rad*Math.tan(angRad/2)*2, cut=travel-ded;
+        const ded=rad*Math.tan(angRad/2)*2, cut=travel-ded;
+        
         document.getElementById('resByPro').style.display='block';
         document.getElementById('outByAng').innerText=angDeg.toFixed(1)+"°";
         document.getElementById('outByTrav').innerText=travel.toFixed(1)+" mm";
         document.getElementById('outByDesc').innerText="-"+ded.toFixed(1)+" mm";
         let cEl=document.getElementById('outByCut');
         cEl.innerText=cut<0?"IMPOSIBLE":cut.toFixed(1)+" mm"; cEl.style.color=cut<0?"red":"#15803d";
+        
+        // Llamada al motor 3D Maestro (Restored)
         drawBayonetaIso(run,set,isRolling?roll:0,cut,angDeg,effSet);
     }
+
     function drawBayonetaIso(run, set, roll, cut, ang, effSet) {
         const svg = document.getElementById('bySvg'); svg.innerHTML = ''; 
         const p0={x:0,y:0,z:0}, pRun={x:run,y:0,z:0}, pCorner={x:run,y:0,z:roll}, pEnd={x:run,y:set,z:roll};  
@@ -433,10 +465,14 @@
         const w=maxX-minX, h=maxY-minY, pad=Math.max(w,h)*0.4+50, stW=Math.max(w,h)*0.015+2;
         svg.setAttribute("viewBox", `${minX-pad} ${minY-pad} ${w+pad*2} ${h+pad*2}`);
         svg.innerHTML+=`<defs><marker id="AH" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto"><path d="M0,0 L0,4 L4,2 z" fill="#94a3b8"/></marker></defs>`;
+        
+        // WIREFRAME
         svg.innerHTML+=`<line x1="${s0.x}" y1="${s0.y}" x2="${sRun.x}" y2="${sRun.y}" stroke="#475569" stroke-width="1" stroke-dasharray="${stW*1.5}" opacity="0.5"/>`;
         svg.innerHTML+=`<line x1="${sRun.x}" y1="${sRun.y}" x2="${sCorner.x}" y2="${sCorner.y}" stroke="#475569" stroke-width="1" stroke-dasharray="${stW*1.5}" opacity="0.5"/>`;
         if(roll>0) svg.innerHTML+=`<path d="M ${s0.x} ${s0.y} L ${sRun.x} ${sRun.y} L ${sCorner.x} ${sCorner.y} Z" fill="rgba(255,255,255,0.03)" stroke="none"/>`;
         svg.innerHTML+=`<line x1="${sCorner.x}" y1="${sCorner.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="#475569" stroke-width="1" stroke-dasharray="${stW*1.5}" opacity="0.5"/>`;
+        
+        // SOLID PIPE
         const pCol=cut<0?"#ef4444":"#facc15", pStr=stW*3.5;
         svg.innerHTML+=`<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="black" stroke-width="${pStr}" stroke-linecap="round" opacity="0.3" transform="translate(4,4)"/>`;
         svg.innerHTML+=`<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="${pCol}" stroke-width="${pStr}" stroke-linecap="round"/>`;
@@ -444,6 +480,8 @@
         const fr=pStr*0.7;
         svg.innerHTML+=`<circle cx="${s0.x}" cy="${s0.y}" r="${fr}" fill="#334155" stroke="#94a3b8" stroke-width="1"/>`;
         svg.innerHTML+=`<circle cx="${sEnd.x}" cy="${sEnd.y}" r="${fr}" fill="#334155" stroke="#94a3b8" stroke-width="1"/>`;
+        
+        // COTAS
         const tSz=stW*3.5;
         function dDim(x1,y1,x2,y2,c,l){
             svg.innerHTML+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${stW/1.5}"/>`;
