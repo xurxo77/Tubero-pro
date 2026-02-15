@@ -41,12 +41,12 @@ button { padding:12px; background:#0284c7; color:white; border:none; border-radi
 <div class="app-container">
 <header>TUBERO PRO - v19.0</header>
 <div class="tabs">
-  <div class="tab-btn active" onclick="setTab('bocapez', this)">Boca Pez</div>
-  <div class="tab-btn" onclick="setTab('bayoneta', this)">Bayoneta</div>
-  <div class="tab-btn" onclick="setTab('bridas', this)">Bridas</div>
-  <div class="tab-btn" onclick="setTab('pesos', this)">Pesos</div>
-  <div class="tab-btn" onclick="setTab('codos', this)">Codos</div>
-  <div class="tab-btn" onclick="setTab('izaje', this)">Izaje</div>
+  <div class="tab-btn active" data-tab="bocapez">Boca Pez</div>
+  <div class="tab-btn" data-tab="bayoneta">Bayoneta</div>
+  <div class="tab-btn" data-tab="bridas">Bridas</div>
+  <div class="tab-btn" data-tab="pesos">Pesos</div>
+  <div class="tab-btn" data-tab="codos">Codos</div>
+  <div class="tab-btn" data-tab="izaje">Izaje</div>
 </div>
 
 <div class="main-content">
@@ -90,13 +90,21 @@ button { padding:12px; background:#0284c7; color:white; border:none; border-radi
 </div>
 
 <script>
-// Función de tabs
-function setTab(id, btn){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
+// Seleccionamos todas las pestañas
+const tabs = document.querySelectorAll('.tab-btn');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    // Quitamos 'active' de todas las secciones y pestañas
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+    // Activamos la sección correspondiente
+    const id = tab.getAttribute('data-tab');
+    document.getElementById(id).classList.add('active');
+    tab.classList.add('active');
+  });
+});
 </script>
 </body>
 </html>
