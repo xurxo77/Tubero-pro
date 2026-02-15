@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v24.2 (PDF FIXED)</title>
+    <title>XURXO - Tubero Pro Elite v27.0 (PDF FINAL)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -123,7 +123,7 @@
 
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
-    <div class="splash-version">BUILD 2024 - v24.2 (PDF FIXED)</div>
+    <div class="splash-version">BUILD 2024 - v27.0 (PDF FIXED)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
@@ -278,7 +278,7 @@
         svg.innerHTML=`<rect width="400" height="160" fill="#0f172a"/><line x1="0" y1="${fajaY}" x2="400" y2="${fajaY}" stroke="#facc15" stroke-dasharray="4"/><path d="${path}" stroke="#0284c7" stroke-width="2" fill="rgba(2,132,199,0.2)"/>`;
     }
 
-    // SVG Technical View (Boca de Pez Lateral) - RESTAURADA
+    // SVG Technical View
     function drawJointSvg(R, r, ang){
         const svg = document.getElementById('jointSvg'); svg.innerHTML='';
         const angRad = ang * Math.PI / 180;
@@ -292,7 +292,6 @@
 
         const len = 140;
         const vx = Math.cos(angRad), vy = -Math.sin(angRad);
-        const x1 = cx - scr*Math.sin(angRad); 
         
         // Eje central ramal
         content += `<line x1="${cx}" y1="${cy}" x2="${cx + len*vx}" y2="${cy + len*vy}" stroke="#facc15" stroke-dasharray="5,2" opacity="0.8"/>`;
@@ -313,7 +312,7 @@
         svg.innerHTML = content;
     }
 
-    // --- PDF FIX (NEGRO Y LINEAS VISIBLES) ---
+    // --- PDF FIX (NEGRO SOLIDO PARA CORTE) ---
     function pdfMultiPaginado(){
         if(!lastBP.pts.length)return;
         document.getElementById('loading-overlay').style.display='flex';
@@ -331,12 +330,8 @@
             for(let p=0;p<nP;p++){
                 if(p>0)doc.addPage();
                 
-                // Configurar Estilos Básicos
-                doc.setDrawColor(0); // Negro absoluto
-                doc.setLineWidth(0.4); 
-                doc.setFontSize(10); doc.setTextColor(0);
-                
                 // Texto Info
+                doc.setFontSize(10); doc.setTextColor(0,0,0);
                 doc.text(`PLANTILLA 1:1 - PÁG ${p+1}/${nP} (XURXO)`, 20, 15);
                 doc.setFontSize(8); doc.setTextColor(100);
                 doc.text(`Ramal: ${lastBP.r}" | Perímetro Total: ${lastBP.per.toFixed(1)}mm`, 20, 20);
@@ -345,41 +340,45 @@
                 let marginX = 20;
 
                 // 1. DIBUJAR FAJA (Linea de doblado)
-                doc.setLineDash([3, 3], 0); doc.setDrawColor(100); // Gris discontinuo
+                doc.setLineDash([3, 3], 0); doc.setDrawColor(150); 
                 let fajaY = yBase-lastBP.margin;
                 doc.line(marginX, fajaY, marginX+pW, fajaY);
-                doc.text(`REFERENCIA (${lastBP.margin}mm)`, marginX+5, fajaY-2);
+                doc.text(`REFERENCIA DOBLADO`, marginX+5, fajaY-2);
 
-                // 2. DIBUJAR CURVA DE CORTE (Negro Sólido)
-                doc.setLineDash([], 0); doc.setDrawColor(0); doc.setLineWidth(0.8); // Linea gruesa corte
+                // 2. DIBUJAR CURVA DE CORTE (NEGRO PURO Y GRUESO)
+                doc.setLineDash([], 0); doc.setDrawColor(0,0,0); doc.setLineWidth(1.0); // 1mm de grosor
                 
                 for(let i=0;i<hdPts.length-1;i++){
                     let p1=hdPts[i], p2=hdPts[i+1];
-                    // Dibujar solo si el segmento está dentro de la "ventana" de esta página
-                    if(p2.x > start && p1.x < end){
-                        let x1=(p1.x-start)+marginX; 
+                    // Dibujar el segmento si alguna parte cae dentro de la página
+                    // Simplemente trasladamos X y dibujamos
+                    let x1_abs = p1.x;
+                    let x2_abs = p2.x;
+
+                    if(x2_abs > start && x1_abs < end){
+                        let x1=(x1_abs-start)+marginX; 
                         let y1=yBase-p1.y; 
-                        let x2=(p2.x-start)+marginX; 
+                        let x2=(x2_abs-start)+marginX; 
                         let y2=yBase-p2.y;
                         
-                        // Clamping para no dibujar fuera de margenes
-                        if(x1 >= marginX && x2 <= marginX+pW) {
+                        // Solo dibujar si está en rango visual del papel
+                        if(x1 > marginX-10 && x2 < marginX+pW+10) {
                             doc.line(x1,y1,x2,y2);
                         }
                     }
                 }
                 
-                // 3. Linea Base y Verticales
+                // 3. Linea Base
                 doc.setLineWidth(0.2); doc.setDrawColor(0);
-                doc.line(marginX, yBase, marginX+pW, yBase); // Suelo
+                doc.line(marginX, yBase, marginX+pW, yBase); 
                 
-                // Lineas verticales de cuadrantes (0, 90, 180, 270, 360)
+                // Referencias verticales
                 let quadStep = lastBP.per / 4;
                 for(let q=0; q<=4; q++){
                     let qX = q * quadStep;
                     if(qX >= start && qX <= end){
                         let plotX = (qX - start) + marginX;
-                        doc.setDrawColor(200); // Gris muy claro
+                        doc.setDrawColor(200); 
                         doc.line(plotX, yBase, plotX, yBase - 150);
                         doc.text(`${q*90}°`, plotX+1, yBase-2);
                     }
