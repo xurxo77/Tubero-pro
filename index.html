@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v21.0</title>
+    <title>XURXO - Tubero Pro Elite v22.0 (ISO 3D)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -278,7 +278,7 @@
     <div class="splash-logo">TUBERO PRO</div>
     <div class="splash-divider"></div>
     <div class="splash-name">OFICIAL: XURXO</div>
-    <div class="splash-version">BUILD 2024 - v21.0 INDUSTRIAL</div>
+    <div class="splash-version">BUILD 2024 - v22.0 (ISOMÉTRICO)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
@@ -295,7 +295,7 @@
     <header>
         <h1>TUBERO PRO</h1>
         <div class="owner-badge">OFICIAL: XURXO</div>
-        <div class="subtitle">EDICIÓN ELITE v21.0</div>
+        <div class="subtitle">EDICIÓN ELITE v22.0</div>
     </header>
 
     <nav class="nav-tabs" id="nav-ignore">
@@ -443,8 +443,8 @@
 
             <div id="resByPro" style="display:none;">
                 <div class="canvas-wrap" style="padding:10px;">
-                    <div class="canvas-label">Esquema de Montaje</div>
-                    <svg id="bySvg" style="width:100%; height:auto; background:#0f172a; border-radius:10px; min-height:200px;"></svg>
+                    <div class="canvas-label">Isométrico (Visualización 3D)</div>
+                    <svg id="bySvg" style="width:100%; height:auto; background:#0f172a; border-radius:10px; min-height:250px;"></svg>
                 </div>
 
                 <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
@@ -823,7 +823,7 @@
 
 
     // ==========================================
-    // --- 3. MÓDULO BAYONETA (RESPONSIVE + ROLLING) ---
+    // --- 3. MÓDULO BAYONETA (ISOMÉTRICO 3D) ---
     // ==========================================
     let byType = 'LR'; 
     let byUnitDia = 'in';
@@ -845,7 +845,7 @@
     function toggleRoll() {
         const isRolling = document.getElementById('checkRolling').checked;
         document.getElementById('groupRoll').style.display = isRolling ? 'block' : 'none';
-        document.getElementById('byRoll').value = ''; // Limpiar si se oculta
+        document.getElementById('byRoll').value = ''; 
     }
 
     function calcBayonetaPro() {
@@ -855,11 +855,10 @@
         // --- LÓGICA ROLLING OFFSET (3D) ---
         const isRolling = document.getElementById('checkRolling').checked;
         const roll = parseFloat(document.getElementById('byRoll').value);
-        let effectiveSet = set; // Por defecto es igual a la Altura
+        let effectiveSet = set; 
 
         if(isRolling) {
             if(!roll) { showMsg("Introduce el Roll (Desplazamiento)"); return; }
-            // Pitágoras para sacar la diagonal del cajón (Set + Roll)
             effectiveSet = Math.sqrt(Math.pow(set, 2) + Math.pow(roll, 2));
         }
 
@@ -872,7 +871,6 @@
         
         if (!run || !set || !diameterBase) { showMsg("Faltan datos"); return; }
 
-        // Cálculos usando effectiveSet (que será la altura real o la diagonal 3D)
         const travel = Math.sqrt(Math.pow(run, 2) + Math.pow(effectiveSet, 2));
         const angleRad = Math.atan(effectiveSet / run);
         const angleDeg = angleRad * (180 / Math.PI);
@@ -898,69 +896,119 @@
             cutElem.style.color = "#15803d";
         }
 
-        // Pasamos effectiveSet al dibujo para que pinte la diagonal correcta
-        drawBayonetaSvgResponsive(run, effectiveSet, cutLength, angleDeg, isRolling);
+        // Llamada al motor 3D
+        // Pasamos (Run, Set, Roll) reales. Si no es rolling, Roll = 0
+        const rVal = isRolling ? roll : 0;
+        drawBayonetaIso(run, set, rVal, cutLength, angleDeg, effectiveSet);
     }
 
-    function drawBayonetaSvgResponsive(run, set, cut, ang, isRolling) {
+    // --- MOTOR ISOMÉTRICO 3D ---
+    function drawBayonetaIso(run, set, roll, cut, ang, effSet) {
         const svg = document.getElementById('bySvg');
         svg.innerHTML = ''; 
 
-        const margin = Math.max(run, set) * 0.15 + 40; 
-        
-        const vbX = -margin;
-        const vbY = -set - margin; 
-        const vbW = run + (margin * 2);
-        const vbH = set + (margin * 2);
+        // 1. Definir coordenadas 3D (x=Run, y=Set, z=Roll)
+        // El origen (0,0,0) es el punto de inicio de la tubería
+        const p0 = {x:0, y:0, z:0};
+        const pRun = {x:run, y:0, z:0};
+        const pCorner = {x:run, y:0, z:roll}; // La esquina en el suelo (Run + Roll)
+        const pEnd = {x:run, y:set, z:roll};  // El punto final en el aire (Run + Roll + Set)
 
-        svg.setAttribute("viewBox", `${vbX} ${vbY} ${vbW} ${vbH}`);
+        // 2. Proyección Isométrica (Mundo 3D -> Pantalla 2D)
+        // Angulo de 30 grados estándar
+        // Ejes: X va abajo-derecha, Z va abajo-izquierda, Y va arriba
+        function toIso(pt) {
+            const angle = 30 * Math.PI / 180;
+            // Isometric projection formula
+            // ScreenX = (x - z) * cos(30)
+            // ScreenY = (x + z) * sin(30) - y  (Restamos Y porque en SVG Y+ es abajo, pero Set+ es arriba)
+            return {
+                x: (pt.x - pt.z) * Math.cos(angle),
+                y: (pt.x + pt.z) * Math.sin(angle) - pt.y
+            };
+        }
 
+        const s0 = toIso(p0);
+        const sRun = toIso(pRun);
+        const sCorner = toIso(pCorner);
+        const sEnd = toIso(pEnd);
+
+        // 3. Auto-Zoom (ViewBox dinámico)
+        // Recopilar todos los puntos para saber los límites
+        const pts = [s0, sRun, sCorner, sEnd];
+        const minX = Math.min(...pts.map(p=>p.x));
+        const maxX = Math.max(...pts.map(p=>p.x));
+        const minY = Math.min(...pts.map(p=>p.y));
+        const maxY = Math.max(...pts.map(p=>p.y));
+
+        const w = maxX - minX;
+        const h = maxY - minY;
+        const pad = Math.max(w, h) * 0.3 + 40; // Margen generoso para etiquetas
+
+        svg.setAttribute("viewBox", `${minX - pad} ${minY - pad} ${w + pad*2} ${h + pad*2}`);
+
+        // --- DIBUJADO ---
         let defs = `<defs>
             <marker id="arrowHead" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto" markerUnits="strokeWidth">
-                <path d="M0,0 L0,4 L4,2 z" fill="#64748b" />
+                <path d="M0,0 L0,4 L4,2 z" fill="#94a3b8" />
             </marker>
         </defs>`;
         svg.innerHTML += defs;
 
-        // Guías
-        svg.innerHTML += `<line x1="${-20}" y1="0" x2="${run}" y2="0" stroke="#94a3b8" stroke-dasharray="10,5" vector-effect="non-scaling-stroke" stroke-width="1"/>`;
-        svg.innerHTML += `<line x1="${run}" y1="0" x2="${run}" y2="${-set}" stroke="#94a3b8" stroke-dasharray="10,5" vector-effect="non-scaling-stroke" stroke-width="1"/>`;
-        svg.innerHTML += `<line x1="0" y1="0" x2="${run}" y2="${-set}" stroke="#cbd5e1" stroke-dasharray="5,5" vector-effect="non-scaling-stroke" stroke-width="1"/>`;
+        // Estilos
+        const axisColor = "#334155";
+        const dimColor = "#64748b";
+        const pipeColor = (cut < 0) ? "#ef4444" : "#facc15";
+        const strokeW = Math.max(w, h) * 0.01 + 1;
 
-        // Tubo
-        const pipeW = Math.max(run, set) * 0.02 + 2; 
-        const pipeColor = (cut < 0) ? "#ef4444" : "#facc15"; 
-        
-        svg.innerHTML += `<path d="M ${-margin/2} 0 L 0 0 L ${run} ${-set} L ${run + margin/2} ${-set}" 
-            fill="none" stroke="${pipeColor}" stroke-width="${pipeW}" stroke-linejoin="round" stroke-linecap="round"/>`;
-
-        // Cotas
-        const distCota = margin * 0.4;
-        const textSize = Math.max(run, set) * 0.05 + 5; 
-
-        // Avance
-        svg.innerHTML += `<line x1="0" y1="${distCota}" x2="${run}" y2="${distCota}" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="1.5" marker-end="url(#arrowHead)"/>`;
-        svg.innerHTML += `<line x1="0" y1="${distCota}" x2="0" y2="0" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
-        svg.innerHTML += `<line x1="${run}" y1="${distCota}" x2="${run}" y2="0" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
-        svg.innerHTML += `<text x="${run/2}" y="${distCota + textSize}" fill="#475569" font-size="${textSize}" text-anchor="middle" font-weight="bold">AVANCE: ${run}</text>`;
-
-        // Altura / Diagonal
-        svg.innerHTML += `<line x1="${run + distCota}" y1="0" x2="${run + distCota}" y2="${-set}" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="1.5" marker-end="url(#arrowHead)"/>`;
-        svg.innerHTML += `<line x1="${run + distCota}" y1="0" x2="${run}" y2="0" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
-        svg.innerHTML += `<line x1="${run + distCota}" y1="${-set}" x2="${run}" y2="${-set}" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
-        
-        // Etiqueta dinámica
-        const labelText = isRolling ? `DIAG. (SET+ROLL): ${set.toFixed(1)}` : `ALTURA: ${set}`;
-        svg.innerHTML += `<text x="${run + distCota + textSize}" y="${-set/2}" fill="#475569" font-size="${textSize}" text-anchor="middle" font-weight="bold" transform="rotate(-90, ${run + distCota + textSize}, ${-set/2})">${labelText}</text>`;
-
-        if (run > 0 && set > 0) {
-            svg.innerHTML += `<text x="${textSize*2}" y="${-textSize/2}" fill="#2563eb" font-size="${textSize}" font-weight="bold">${ang.toFixed(1)}°</text>`;
+        // A. CAJA DE ALAMBRE (Wireframe) - Guías visuales
+        // Linea Run (Suelo)
+        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sRun.x}" y2="${sRun.y}" stroke="${axisColor}" stroke-dasharray="5,5" stroke-width="1"/>`;
+        // Linea Roll (Suelo)
+        svg.innerHTML += `<line x1="${sRun.x}" y1="${sRun.y}" x2="${sCorner.x}" y2="${sCorner.y}" stroke="${axisColor}" stroke-dasharray="5,5" stroke-width="1"/>`;
+        // Linea Set (Vertical)
+        svg.innerHTML += `<line x1="${sCorner.x}" y1="${sCorner.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="${axisColor}" stroke-dasharray="5,5" stroke-width="1"/>`;
+        // Diagonal del Suelo (Si hay Roll, para ver el triángulo base)
+        if(roll > 0) {
+             svg.innerHTML += `<line x1="${sRun.x}" y1="${sRun.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="#1e293b" stroke-dasharray="2,2" stroke-width="0.5" opacity="0.5"/>`;
         }
-        if (cut > 0) {
-            svg.innerHTML += `<text x="${run/2}" y="${-set/2 - textSize}" fill="#facc15" font-size="${textSize}" text-anchor="middle" font-weight="bold" stroke="#000" stroke-width="0.5" paint-order="stroke">CORTE = ${cut.toFixed(0)}</text>`;
+
+        // B. TUBERÍA (TRAVEL)
+        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="${pipeColor}" stroke-width="${strokeW*3}" stroke-linecap="round"/>`;
+        
+        // Nodos (Esferas en las esquinas)
+        const nodeR = strokeW * 1.5;
+        svg.innerHTML += `<circle cx="${s0.x}" cy="${s0.y}" r="${nodeR}" fill="#fff" stroke="${axisColor}" stroke-width="1"/>`;
+        svg.innerHTML += `<circle cx="${sEnd.x}" cy="${sEnd.y}" r="${nodeR}" fill="#fff" stroke="${axisColor}" stroke-width="1"/>`;
+
+        // C. ETIQUETAS (Texto Flotante)
+        const txtSize = strokeW * 4;
+        
+        // Etiqueta RUN
+        svg.innerHTML += `<text x="${(s0.x + sRun.x)/2}" y="${(s0.y + sRun.y)/2 + txtSize}" fill="${dimColor}" font-size="${txtSize}" text-anchor="middle" font-weight="bold">RUN: ${run}</text>`;
+        
+        // Etiqueta ROLL (Si existe)
+        if(roll > 0) {
+            svg.innerHTML += `<text x="${(sRun.x + sCorner.x)/2 - txtSize}" y="${(sRun.y + sCorner.y)/2 + txtSize}" fill="${dimColor}" font-size="${txtSize}" text-anchor="end" font-weight="bold">ROLL: ${roll}</text>`;
+        }
+
+        // Etiqueta SET (Altura vertical)
+        svg.innerHTML += `<text x="${sEnd.x + txtSize/2}" y="${(sCorner.y + sEnd.y)/2}" fill="${dimColor}" font-size="${txtSize}" text-anchor="start" font-weight="bold">SET: ${set}</text>`;
+
+        // Etiqueta ÁNGULO (Cerca del origen)
+        if(run > 0 && effSet > 0) {
+            svg.innerHTML += `<text x="${s0.x}" y="${s0.y - txtSize*1.5}" fill="#2563eb" font-size="${txtSize}" font-weight="bold" text-anchor="middle">${ang.toFixed(1)}°</text>`;
+        }
+
+        // Etiqueta CORTE (En el medio de la tubería)
+        if(cut > 0) {
+            // Fondo blanco para que se lea bien sobre las líneas
+            svg.innerHTML += `<rect x="${(s0.x + sEnd.x)/2 - txtSize*3}" y="${(s0.y + sEnd.y)/2 - txtSize}" width="${txtSize*6}" height="${txtSize*1.2}" fill="rgba(255,255,255,0.8)" rx="2"/>`;
+            svg.innerHTML += `<text x="${(s0.x + sEnd.x)/2}" y="${(s0.y + sEnd.y)/2}" fill="#b45309" font-size="${txtSize}" font-weight="900" text-anchor="middle" dominant-baseline="middle">CORTE: ${cut.toFixed(0)}</text>`;
         }
     }
     
+    // Función auxiliar para dibujar uniones en pantalla
     function drawJointSvg(R, r, ang) {
         const svg = document.getElementById('jointSvg');
         const angRad = ang * Math.PI / 180;
