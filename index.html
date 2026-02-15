@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v27.0 (PDF FINAL)</title>
+    <title>XURXO - Tubero Pro Elite v27.1 (PDF FRAME)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -123,7 +123,7 @@
 
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
-    <div class="splash-version">BUILD 2024 - v27.0 (PDF FIXED)</div>
+    <div class="splash-version">BUILD 2024 - v27.1 (FRAME FIXED)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
@@ -293,13 +293,10 @@
         const len = 140;
         const vx = Math.cos(angRad), vy = -Math.sin(angRad);
         
-        // Eje central ramal
         content += `<line x1="${cx}" y1="${cy}" x2="${cx + len*vx}" y2="${cy + len*vy}" stroke="#facc15" stroke-dasharray="5,2" opacity="0.8"/>`;
         
-        // Cuerpo Ramal
         const offX = scr * Math.sin(Math.PI/2 - angRad);
         const offY = scr * Math.cos(Math.PI/2 - angRad);
-        
         const p1x = cx - offX, p1y = cy - offY;
         const p2x = cx + offX, p2y = cy + offY;
         const p3x = p2x + len*vx, p3y = p2y + len*vy;
@@ -307,82 +304,73 @@
         
         content += `<line x1="${p1x}" y1="${p1y - scR}" x2="${p4x}" y2="${p4y - scR}" stroke="#38bdf8" stroke-width="2"/>`;
         content += `<line x1="${p2x}" y1="${p2y - scR}" x2="${p3x}" y2="${p3y - scR}" stroke="#38bdf8" stroke-width="2"/>`;
-        
         content += `<text x="${cx + 60}" y="${cy - scR - 10}" fill="#facc15" font-size="16" font-weight="bold">${ang}°</text>`;
         svg.innerHTML = content;
     }
 
-    // --- PDF FIX (NEGRO SOLIDO PARA CORTE) ---
+    // --- PDF FIX FINAL: MARCO DE PAPEL ---
     function pdfMultiPaginado(){
         if(!lastBP.pts.length)return;
         document.getElementById('loading-overlay').style.display='flex';
         setTimeout(()=>{
             const { jsPDF } = window.jspdf; const doc=new jsPDF({orientation:'l',unit:'mm',format:exportFormat});
             
-            // Recalcular puntos en alta definición
+            // Recalcular puntos HD
             let hdPts=[]; for(let i=0;i<=360;i++){
                 let phi=i*Math.PI/180;
                 let y=(Math.sqrt(Math.pow(lastBP.R_cab_mm,2)-Math.pow(lastBP.r_ram_mm*Math.sin(phi),2))/Math.sin(lastBP.angRad))-(lastBP.r_ram_mm*Math.cos(phi)/Math.tan(lastBP.angRad));
                 hdPts.push({x:(i/360)*lastBP.per,y:(y-lastBP.minY_raw)+lastBP.margin});
             }
             
+            // Altura total del papel requerida
+            let totalHeight = Math.max(...lastBP.pts); 
+            
             let pW=(exportFormat==='a3'?420:297)-40, nP=Math.ceil(lastBP.per/pW);
             for(let p=0;p<nP;p++){
                 if(p>0)doc.addPage();
                 
-                // Texto Info
                 doc.setFontSize(10); doc.setTextColor(0,0,0);
                 doc.text(`PLANTILLA 1:1 - PÁG ${p+1}/${nP} (XURXO)`, 20, 15);
-                doc.setFontSize(8); doc.setTextColor(100);
-                doc.text(`Ramal: ${lastBP.r}" | Perímetro Total: ${lastBP.per.toFixed(1)}mm`, 20, 20);
-
+                
                 let start=p*pW, end=(p+1)*pW, yBase=180;
                 let marginX = 20;
-
-                // 1. DIBUJAR FAJA (Linea de doblado)
-                doc.setLineDash([3, 3], 0); doc.setDrawColor(150); 
-                let fajaY = yBase-lastBP.margin;
-                doc.line(marginX, fajaY, marginX+pW, fajaY);
-                doc.text(`REFERENCIA DOBLADO`, marginX+5, fajaY-2);
-
-                // 2. DIBUJAR CURVA DE CORTE (NEGRO PURO Y GRUESO)
-                doc.setLineDash([], 0); doc.setDrawColor(0,0,0); doc.setLineWidth(1.0); // 1mm de grosor
                 
+                // Calcular ancho de dibujo en esta página
+                let widthOnPage = Math.min(pW, lastBP.per - start);
+
+                // 1. MARCO DEL PAPEL (Contorno Rectangular)
+                doc.setDrawColor(0); doc.setLineWidth(0.3);
+                // Linea Base
+                doc.line(marginX, yBase, marginX + widthOnPage, yBase);
+                // Linea Superior
+                doc.line(marginX, yBase - totalHeight, marginX + widthOnPage, yBase - totalHeight);
+                
+                // Cierre Izquierdo (Si es primera pagina)
+                if(p===0) doc.line(marginX, yBase, marginX, yBase - totalHeight);
+                // Cierre Derecho (Si es ultima pagina)
+                if(p===nP-1) doc.line(marginX + widthOnPage, yBase, marginX + widthOnPage, yBase - totalHeight);
+                
+                // Si estamos en paginas intermedias, dibujar lineas de corte lateral tambien para guiar
+                if(p>0) doc.line(marginX, yBase, marginX, yBase - totalHeight); 
+                if(p<nP-1) doc.line(marginX + widthOnPage, yBase, marginX + widthOnPage, yBase - totalHeight);
+
+                // 2. CURVA DE CORTE
+                doc.setLineWidth(1.0); // Gruesa
                 for(let i=0;i<hdPts.length-1;i++){
                     let p1=hdPts[i], p2=hdPts[i+1];
-                    // Dibujar el segmento si alguna parte cae dentro de la página
-                    // Simplemente trasladamos X y dibujamos
-                    let x1_abs = p1.x;
-                    let x2_abs = p2.x;
-
-                    if(x2_abs > start && x1_abs < end){
-                        let x1=(x1_abs-start)+marginX; 
-                        let y1=yBase-p1.y; 
-                        let x2=(x2_abs-start)+marginX; 
-                        let y2=yBase-p2.y;
-                        
-                        // Solo dibujar si está en rango visual del papel
-                        if(x1 > marginX-10 && x2 < marginX+pW+10) {
-                            doc.line(x1,y1,x2,y2);
-                        }
+                    if(p2.x > start && p1.x < end){
+                        let x1=(p1.x-start)+marginX, y1=yBase-p1.y;
+                        let x2=(p2.x-start)+marginX, y2=yBase-p2.y;
+                        if(x1 >= marginX-1 && x2 <= marginX+pW+1) doc.line(x1,y1,x2,y2);
                     }
                 }
                 
-                // 3. Linea Base
-                doc.setLineWidth(0.2); doc.setDrawColor(0);
-                doc.line(marginX, yBase, marginX+pW, yBase); 
-                
-                // Referencias verticales
-                let quadStep = lastBP.per / 4;
-                for(let q=0; q<=4; q++){
-                    let qX = q * quadStep;
-                    if(qX >= start && qX <= end){
-                        let plotX = (qX - start) + marginX;
-                        doc.setDrawColor(200); 
-                        doc.line(plotX, yBase, plotX, yBase - 150);
-                        doc.text(`${q*90}°`, plotX+1, yBase-2);
-                    }
-                }
+                // 3. Faja Referencia
+                doc.setLineWidth(0.2); doc.setLineDash([3,3],0); doc.setDrawColor(100);
+                let fY = yBase - lastBP.margin;
+                doc.line(marginX, fY, marginX + widthOnPage, fY);
+                doc.text(`Ref. ${lastBP.margin}mm`, marginX+2, fY-2);
+                doc.setLineDash([],0);
             }
             doc.save(`Plantilla_Corte_Xurxo_${lastBP.r}.pdf`); 
             document.getElementById('loading-overlay').style.display='none';
@@ -403,11 +391,10 @@
         document.getElementById('loading-overlay').style.display='none';
     }
 
-    // --- BAYONETA 3D MASTER (v24.0 Logic) ---
+    // --- BAYONETA LOGIC (UNCHANGED) ---
     let byUnitDia='in';
     function toggleDiaUnit(u){byUnitDia=u;document.getElementById('btnDiaIn').classList.toggle('active',u==='in');document.getElementById('btnDiaMm').classList.toggle('active',u==='mm');document.getElementById('inputDiaIn').style.display=u==='in'?'block':'none';document.getElementById('inputDiaMm').style.display=u==='mm'?'block':'none';}
     function toggleRoll(){const c=document.getElementById('checkRolling').checked;document.getElementById('groupRoll').style.display=c?'block':'none';document.getElementById('byRoll').value='';}
-
     function calcBayonetaPro(){
         const run=parseFloat(document.getElementById('byRun').value), set=parseFloat(document.getElementById('bySet').value);
         const isRolling=document.getElementById('checkRolling').checked, roll=parseFloat(document.getElementById('byRoll').value);
@@ -415,10 +402,8 @@
         if(isRolling){ if(!roll){showMsg("Falta Roll");return;} effSet=Math.sqrt(set*set+roll*roll); }
         let dBase=0; if(byUnitDia==='in') dBase=parseFloat(document.getElementById('byDiaSel').value)*25.4; else dBase=parseFloat(document.getElementById('byDiaInp').value);
         if(!run||!set||!dBase){showMsg("Faltan datos");return;}
-
         const travel=Math.sqrt(run*run+effSet*effSet), angRad=Math.atan(effSet/run), angDeg=angRad*180/Math.PI;
         const rad=(coType==='LR')?dBase*1.5:dBase, ded=rad*Math.tan(angRad/2)*2, cut=travel-ded;
-
         document.getElementById('resByPro').style.display='block';
         document.getElementById('outByAng').innerText=angDeg.toFixed(1)+"°";
         document.getElementById('outByTrav').innerText=travel.toFixed(1)+" mm";
@@ -427,7 +412,6 @@
         cEl.innerText=cut<0?"IMPOSIBLE":cut.toFixed(1)+" mm"; cEl.style.color=cut<0?"red":"#15803d";
         drawBayonetaIso(run,set,isRolling?roll:0,cut,angDeg,effSet);
     }
-
     function drawBayonetaIso(run, set, roll, cut, ang, effSet) {
         const svg = document.getElementById('bySvg'); svg.innerHTML = ''; 
         const p0={x:0,y:0,z:0}, pRun={x:run,y:0,z:0}, pCorner={x:run,y:0,z:roll}, pEnd={x:run,y:set,z:roll};  
@@ -438,14 +422,10 @@
         const w=maxX-minX, h=maxY-minY, pad=Math.max(w,h)*0.4+50, stW=Math.max(w,h)*0.015+2;
         svg.setAttribute("viewBox", `${minX-pad} ${minY-pad} ${w+pad*2} ${h+pad*2}`);
         svg.innerHTML+=`<defs><marker id="AH" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto"><path d="M0,0 L0,4 L4,2 z" fill="#94a3b8"/></marker></defs>`;
-
-        // CAJA ALAMBRE
         svg.innerHTML+=`<line x1="${s0.x}" y1="${s0.y}" x2="${sRun.x}" y2="${sRun.y}" stroke="#475569" stroke-width="1" stroke-dasharray="${stW*1.5}" opacity="0.5"/>`;
         svg.innerHTML+=`<line x1="${sRun.x}" y1="${sRun.y}" x2="${sCorner.x}" y2="${sCorner.y}" stroke="#475569" stroke-width="1" stroke-dasharray="${stW*1.5}" opacity="0.5"/>`;
         if(roll>0) svg.innerHTML+=`<path d="M ${s0.x} ${s0.y} L ${sRun.x} ${sRun.y} L ${sCorner.x} ${sCorner.y} Z" fill="rgba(255,255,255,0.03)" stroke="none"/>`;
         svg.innerHTML+=`<line x1="${sCorner.x}" y1="${sCorner.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="#475569" stroke-width="1" stroke-dasharray="${stW*1.5}" opacity="0.5"/>`;
-
-        // TUBO SOLIDO
         const pCol=cut<0?"#ef4444":"#facc15", pStr=stW*3.5;
         svg.innerHTML+=`<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="black" stroke-width="${pStr}" stroke-linecap="round" opacity="0.3" transform="translate(4,4)"/>`;
         svg.innerHTML+=`<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="${pCol}" stroke-width="${pStr}" stroke-linecap="round"/>`;
@@ -453,8 +433,6 @@
         const fr=pStr*0.7;
         svg.innerHTML+=`<circle cx="${s0.x}" cy="${s0.y}" r="${fr}" fill="#334155" stroke="#94a3b8" stroke-width="1"/>`;
         svg.innerHTML+=`<circle cx="${sEnd.x}" cy="${sEnd.y}" r="${fr}" fill="#334155" stroke="#94a3b8" stroke-width="1"/>`;
-
-        // COTAS
         const tSz=stW*3.5;
         function dDim(x1,y1,x2,y2,c,l){
             svg.innerHTML+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${stW/1.5}"/>`;
@@ -465,7 +443,6 @@
         dDim(s0.x, s0.y+pStr, sRun.x, sRun.y+pStr, "#60a5fa", `R:${run}`);
         if(roll>0) dDim(sRun.x+pStr/2, sRun.y, sCorner.x+pStr/2, sCorner.y, "#34d399", `D:${roll}`);
         dDim(sCorner.x+pStr, sCorner.y, sEnd.x+pStr, sEnd.y, "#f87171", `H:${set}`);
-
         if(cut>0){
             svg.innerHTML+=`<rect x="${(s0.x+sEnd.x)/2-tSz*3}" y="${(s0.y+sEnd.y)/2-tSz*3}" width="${tSz*6}" height="${tSz*1.5}" fill="#facc15" stroke="black" rx="4"/>`;
             svg.innerHTML+=`<text x="${(s0.x+sEnd.x)/2}" y="${(s0.y+sEnd.y)/2-tSz*2}" fill="#000" font-size="${tSz}" font-weight="900" text-anchor="middle" dominant-baseline="middle">CORTE: ${cut.toFixed(0)}</text>`;
