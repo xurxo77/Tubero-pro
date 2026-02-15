@@ -344,17 +344,98 @@
         return pts[pts.length-1].y;
     }
 
-    function pdfMultiPaginado(){
-        if(!lastBP.pts.length)return;
-        document.getElementById('loading-overlay').style.display='flex';
-        setTimeout(()=>{
-            const { jsPDF } = window.jspdf; const doc=new jsPDF({orientation:'l',unit:'mm',format:exportFormat});
+    // --- FUNCIÓN CORREGIDA PARA PERFILADO DE CORTE (SCISSOR READY) ---
+function pdfMultiPaginado(){
+    if(!lastBP.pts.length) return;
+    document.getElementById('loading-overlay').style.display='flex';
+    
+    setTimeout(()=>{
+        const { jsPDF } = window.jspdf; 
+        const doc = new jsPDF({orientation:'l', unit:'mm', format:exportFormat});
+        
+        // 1. Generar puntos HD (720 puntos para una curva suave)
+        let hdPts = []; 
+        for(let i=0; i<=720; i++){
+            let phi = (i/2) * Math.PI / 180;
+            let y = (Math.sqrt(Math.pow(lastBP.R_cab_mm,2) - Math.pow(lastBP.r_ram_mm * Math.sin(phi),2)) / Math.sin(lastBP.angRad)) - (lastBP.r_ram_mm * Math.cos(phi) / Math.tan(lastBP.angRad));
+            hdPts.push({
+                x: ((i/2)/360) * lastBP.per, 
+                y: (y - lastBP.minY_raw) + lastBP.margin
+            });
+        }
+        
+        const pW = (exportFormat === 'a3' ? 420 : 297) - 40; 
+        const nP = Math.ceil(lastBP.per / pW);
+        const totalH = Math.max(...lastBP.pts);
+        const yBase = 180; // Posición de la base en el papel
+        const mX = 20;    // Margen izquierdo
+
+        for(let p=0; p<nP; p++){
+            if(p > 0) doc.addPage();
             
-            let hdPts=[]; for(let i=0;i<=720;i++){
-                let phi=(i/2)*Math.PI/180;
-                let y=(Math.sqrt(Math.pow(lastBP.R_cab_mm,2)-Math.pow(lastBP.r_ram_mm*Math.sin(phi),2))/Math.sin(lastBP.angRad))-(lastBP.r_ram_mm*Math.cos(phi)/Math.tan(lastBP.angRad));
-                hdPts.push({x:((i/2)/360)*lastBP.per,y:(y-lastBP.minY_raw)+lastBP.margin});
+            doc.setFontSize(10); doc.setTextColor(0);
+            doc.text(`PLANTILLA CORTE 1:1 - PÁG ${p+1}/${nP} (XURXO)`, mX, 15);
+            
+            let startX = p * pW;
+            let endX = (p + 1) * pW;
+            let currentW = Math.min(pW, lastBP.per - startX);
+
+            // --- DIBUJO DEL CONTORNO CERRADO (PARA TIJERAS) ---
+            doc.setDrawColor(0); // Negro
+            doc.setLineWidth(0.8); // Trazo grueso
+
+            // A. Base inferior
+            doc.line(mX, yBase, mX + currentW, yBase);
+
+            // B. Lateral Izquierdo (Sube desde la base hasta el inicio de la curva)
+            let hInicio = getPointAt(startX, hdPts);
+            doc.line(mX, yBase, mX, yBase - hInicio);
+
+            // C. Lateral Derecho (Baja desde el final de la curva hasta la base)
+            let hFin = getPointAt(startX + currentW, hdPts);
+            doc.line(mX + currentW, yBase - hFin, mX + currentW, yBase);
+
+            // D. La Curva Superior (Perfilado HD)
+            for(let i=0; i < hdPts.length - 1; i++){
+                let p1 = hdPts[i];
+                let p2 = hdPts[i+1];
+                
+                // Solo dibujar el tramo que cae en esta página
+                if(p2.x > startX && p1.x < endX){
+                    let x1 = Math.max(startX, p1.x);
+                    let x2 = Math.min(endX, p2.x);
+                    let y1 = getPointAt(x1, hdPts);
+                    let y2 = getPointAt(x2, hdPts);
+                    
+                    doc.line((x1 - startX) + mX, yBase - y1, (x2 - startX) + mX, yBase - y2);
+                }
             }
+
+            // --- REFERENCIAS ADICIONALES ---
+            // Línea de faja (discontinua)
+            doc.setLineWidth(0.2); doc.setLineDash([2, 2], 0); doc.setDrawColor(150);
+            let fy = yBase - lastBP.margin;
+            doc.line(mX, fy, mX + currentW, fy);
+            doc.text(`Ref. Doblado ${lastBP.margin}mm`, mX + 2, fy - 1);
+            
+            // Ejes verticales (0, 90, 180...)
+            doc.setLineDash([], 0);
+            let qs = lastBP.per / 4;
+            for(let q=0; q<=4; q++){
+                let qx = q * qs;
+                if(qx >= startX && qx <= endX){
+                    let px = (qx - startX) + mX;
+                    doc.setDrawColor(220); // Gris muy suave
+                    doc.line(px, yBase, px, yBase - (totalH + 10));
+                    doc.text(`${q*90}°`, px + 1, yBase - 2);
+                }
+            }
+        }
+        
+        doc.save(`PLANTILLA_XURXO_${lastBP.r}_pulg.pdf`); 
+        document.getElementById('loading-overlay').style.display = 'none';
+    }, 1000);
+}
             
             let pW=(exportFormat==='a3'?420:297)-40, nP=Math.ceil(lastBP.per/pW);
             let totalHeight = Math.max(...lastBP.pts) + 5; 
@@ -503,3 +584,4 @@
 </script>
 </body>
 </html>
+
