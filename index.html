@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v31.2</title>
+    <title>XURXO - Tubero Pro Elite v32.0 (ISO PRO)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -130,7 +130,7 @@
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
     <div class="splash-author">MADE BY XURXO</div>
-    <div class="splash-version">BUILD 2024 - v31.2</div>
+    <div class="splash-version">BUILD 2024 - v32.0 (ISO PRO)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
@@ -220,7 +220,7 @@
                 <button class="btn-main" style="margin-top:15px;" onclick="calcBayonetaPro()">Calcular Bayoneta</button>
             </div>
             <div id="resByPro" style="display:none;">
-                <div class="canvas-wrap" style="padding:10px;"><div class="canvas-label">Vista 3D Isométrica (Realista)</div><svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:300px;"></svg></div>
+                <div class="canvas-wrap" style="padding:10px;"><div class="canvas-label">Isométrica de Tubería (Pro)</div><svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:350px;"></svg></div>
                 <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;"><table class="data-table">
                     <tr><td style="text-align:left; color:#166534;">Ángulo Curva</td><td id="outByAng" style="font-weight:900;">0°</td></tr>
                     <tr><td style="text-align:left;">Recorrido (C-C)</td><td id="outByTrav" style="font-weight:bold;">0</td></tr>
@@ -324,7 +324,6 @@
                         doc.line((x1-startX)+mX, yBase-getPointAt(x1, hd), (x2-startX)+mX, yBase-getPointAt(x2, hd));
                     }
                 }
-                // DIVISIONES
                 doc.setLineWidth(0.2); doc.setDrawColor(150);
                 let st = lastBP.per/lastBP.div;
                 for(let d=0; d<=lastBP.div; d++){
@@ -340,67 +339,32 @@
         },1000);
     }
 
-    // --- INFORME PDF (CORREGIDO PARA MOSTRAR TODO) ---
+    // --- INFORME PDF COMPLETO ---
     async function pdfInforme(){
         const { jsPDF } = window.jspdf;
         const scrollEl = document.getElementById('main-scroll');
         const captureArea = document.getElementById('capture-area');
-        
         document.getElementById('loading-overlay').style.display='flex';
         document.getElementById('loading-text').innerText = "CAPTURANDO TODO...";
-
-        // Determinar pestaña activa
         const isBP = document.getElementById('tab-bocapez').classList.contains('active');
-        
-        // --- TRUCO: Expandir scroll temporalmente ---
         const originalStyle = scrollEl.style.cssText;
         scrollEl.classList.add('pdf-exporting');
-
-        // Ocultar elementos que no queremos en el informe
         const hideIds = ['nav-ignore', 'form-ignore', 'btns-ignore', 'form-by-ignore', 'btn-inf-by'];
         hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = 'none'; });
 
         setTimeout(async () => {
             try {
-                const canvas = await html2canvas(captureArea, { 
-                    scale: 2,
-                    useCORS: true,
-                    backgroundColor: "#ffffff",
-                    scrollY: -window.scrollY // Asegurar que capture desde el inicio
-                });
-                
+                const canvas = await html2canvas(captureArea, { scale: 2, useCORS: true, backgroundColor: "#ffffff", scrollY: -window.scrollY });
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfW = 210;
-                const pdfH = (canvas.height * pdfW) / canvas.width;
-                
-                // Si el informe es muy largo, lo metemos en varias páginas
-                let heightLeft = pdfH;
-                let position = 0;
-                let pageHeight = 295;
-
-                pdf.addImage(imgData, 'PNG', 0, position, pdfW, pdfH);
-                heightLeft -= pageHeight;
-
-                while (heightLeft >= 0) {
-                    position = heightLeft - pdfH;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, pdfW, pdfH);
-                    heightLeft -= pageHeight;
-                }
-
+                const pdfW = 210, pdfH = (canvas.height * pdfW) / canvas.width;
+                let heightLeft = pdfH, position = 0, pageHeight = 295;
+                pdf.addImage(imgData, 'PNG', 0, position, pdfW, pdfH); heightLeft -= pageHeight;
+                while (heightLeft >= 0) { position = heightLeft - pdfH; pdf.addPage(); pdf.addImage(imgData, 'PNG', 0, position, pdfW, pdfH); heightLeft -= pageHeight; }
                 pdf.save(`Informe_${isBP?'BocaPez':'Bayoneta'}_Xurxo.pdf`);
-            } catch (err) {
-                showMsg("Error al generar PDF");
-            } finally {
-                // Restaurar todo
-                scrollEl.classList.remove('pdf-exporting');
-                scrollEl.style.cssText = originalStyle;
-                hideIds.forEach(id => { 
-                    if(document.getElementById(id)) {
-                        document.getElementById(id).style.display = (id === 'nav-ignore') ? 'grid' : 'block';
-                    }
-                });
+            } catch (err) { showMsg("Error al generar PDF"); } finally {
+                scrollEl.classList.remove('pdf-exporting'); scrollEl.style.cssText = originalStyle;
+                hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = (id === 'nav-ignore') ? 'grid' : 'block'; });
                 document.getElementById('loading-overlay').style.display='none';
             }
         }, 1000);
@@ -422,17 +386,45 @@
         document.getElementById('outByCut').innerText=cut<0?"IMP":cut.toFixed(1) + " mm";
         drawBayonetaIso(run,set,isR?roll:0,cut,angR*180/Math.PI);
     }
-    function drawBayonetaIso(r,s,ro,cu,an){
-        const svg=document.getElementById('bySvg'); svg.innerHTML='';
-        function tI(p){ const a=30*Math.PI/180; return {x:(p.x-p.z)*Math.cos(a), y:(p.x+p.z)*Math.sin(a)-p.y}; }
-        const s0=tI({x:0,y:0,z:0}), sr=tI({x:r,y:0,z:0}), sc=tI({x:r,y:0,z:ro}), se=tI({x:r,y:s,z:ro});
-        svg.setAttribute("viewBox", `-200 -200 600 600`);
-        let l=`<line x1="${s0.x}" y1="${s0.y}" x2="${sr.x}" y2="${sr.y}" stroke="#475569" stroke-dasharray="5" opacity="0.5"/>`;
-        l+=`<line x1="${sr.x}" y1="${sr.y}" x2="${sc.x}" y2="${sc.y}" stroke="#475569" stroke-dasharray="5" opacity="0.5"/>`;
-        l+=`<line x1="${sc.x}" y1="${sc.y}" x2="${se.x}" y2="${se.y}" stroke="#475569" stroke-dasharray="5" opacity="0.5"/>`;
-        l+=`<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="black" stroke-width="18" stroke-linecap="round" opacity="0.3" transform="translate(4,4)"/>`;
-        l+=`<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
-        svg.innerHTML=l;
+
+    // --- NUEVA VISUALIZACIÓN ISOMÉTRICA PRO ---
+    function drawBayonetaIso(r, s, ro, cu, an) {
+        const svg = document.getElementById('bySvg'); svg.innerHTML = '';
+        function tI(p) { const a = 30 * Math.PI / 180; return { x: (p.x - p.z) * Math.cos(a), y: (p.x + p.z) * Math.sin(a) - p.y }; }
+        const p0 = { x: 0, y: 0, z: 0 }, pR = { x: r, y: 0, z: 0 }, pC = { x: r, y: 0, z: ro }, pE = { x: r, y: s, z: ro };
+        const s0 = tI(p0), sr = tI(pR), sc = tI(pC), se = tI(pE);
+        const pts = [s0, sr, sc, se];
+        const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x));
+        const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
+        const w = maxX - minX, h = maxY - minY, pad = 150;
+        svg.setAttribute("viewBox", `${minX - pad} ${minY - pad} ${w + pad * 2} ${h + pad * 2}`);
+
+        let defs = `<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker><pattern id="hatch" width="5" height="5" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="5" style="stroke:#cbd5e1; stroke-width:1" /></pattern></defs>`;
+        svg.innerHTML = defs; let content = '';
+
+        // Wireframe y Sombreado Roll
+        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="5,5" opacity="0.6"/>`;
+        if (ro > 0) content += `<path d="M${sr.x},${sr.y} L${sc.x},${sc.y} L${sc.x},${sc.y + s} L${sr.x},${sr.y + s} Z" fill="url(#hatch)" opacity="0.3"/>`;
+
+        // Tubería Estilo Técnico
+        const pW = 24;
+        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="${pW}" stroke-linecap="round" stroke-linejoin="round" transform="translate(5,5)"/>`;
+        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#facc15" stroke-width="${pW}" stroke-linecap="round" stroke-linejoin="round"/>`;
+        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#713f12" stroke-width="2" stroke-dasharray="15,5,2,5" opacity="0.8"/>`;
+        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#a16207" stroke-width="${pW}" stroke-linecap="round" stroke-linejoin="round" opacity="0.3" style="fill:none"/>`;
+
+        // Cotas
+        const dOff = 40; const dTS = 14;
+        function drawDim(p1, p2, label, color, ov) {
+            const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2, offX = ov.x * dOff, offY = ov.y * dOff;
+            let d = `<line x1="${p1.x}" y1="${p1.y}" x2="${p1.x + offX}" y2="${p1.y + offY}" stroke="${color}" stroke-width="1" opacity="0.5"/><line x1="${p2.x}" y1="${p2.y}" x2="${p2.x + offX}" y2="${p2.y + offY}" stroke="${color}" stroke-width="1" opacity="0.5"/><line x1="${p1.x + offX}" y1="${p1.y + offY}" x2="${p2.x + offX}" y2="${p2.y + offY}" stroke="${color}" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/><rect x="${mx + offX - (label.length*4)}" y="${my + offY - 10}" width="${label.length*8+10}" height="20" fill="${color}" rx="4" opacity="0.1"/><text x="${mx + offX}" y="${my + offY + 5}" fill="${color}" font-size="${dTS}" font-family="monospace" font-weight="bold" text-anchor="middle">${label}</text>`; return d;
+        }
+        const vRun = {x: 0, y: 1}, vRoll = {x: 1, y: 0}, vSet = {x: -1, y: 0};
+        content += drawDim(s0, sr, `RUN: ${r}`, "#2563eb", vRun);
+        if (ro > 0) content += drawDim(sr, sc, `ROLL: ${ro}`, "#059669", vRoll);
+        content += drawDim(sc, se, `SET: ${s}`, "#dc2626", vSet);
+        content += `<circle cx="${s0.x}" cy="${s0.y}" r="${pW/2}" fill="none" stroke="#a16207" stroke-width="2"/><text x="${s0.x-30}" y="${s0.y}" fill="#a16207" font-weight="bold">INICIO</text><circle cx="${se.x}" cy="${se.y}" r="${pW/2}" fill="none" stroke="#a16207" stroke-width="2"/><text x="${se.x+30}" y="${se.y}" fill="#a16207" font-weight="bold">FIN</text>`;
+        svg.innerHTML += content;
     }
 
     const dbB={"150":{"4":{od:228.6,bc:190.5}},"300":{"4":{od:254,bc:200}}};
