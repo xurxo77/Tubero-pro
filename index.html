@@ -5,7 +5,6 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XURXO - Tubero Pro Elite v19.0</title>
-    <!-- Librerías de exportación -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -270,7 +269,6 @@
 </head>
 <body>
 
-<!-- PANTALLA DE INICIO -->
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
     <div class="splash-divider"></div>
@@ -306,7 +304,6 @@
 
     <div class="main-content">
         
-        <!-- PESTAÑA BOCA PEZ -->
         <div id="tab-bocapez" class="section active">
             <h2>Injerto Boca de Pez (Ángulo Variable)</h2>
             <div class="card" id="form-ignore">
@@ -379,86 +376,84 @@
             </div>
         </div>
 
-        <!-- BAYONETAS -->
-       <div id="tab-bayoneta" class="section">
-    <h2>Cálculo de Bayonetas</h2>
-    <div class="card">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-            <div class="input-group">
-                <label>Avance (Run)</label>
-                <input type="number" id="byRun" placeholder="mm">
+        <div id="tab-bayoneta" class="section">
+            <h2>Cálculo de Bayonetas</h2>
+            <div class="card">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <div class="input-group">
+                        <label>Avance (Run)</label>
+                        <input type="number" id="byRun" placeholder="mm">
+                    </div>
+                    <div class="input-group">
+                        <label>Altura (Set)</label> <input type="number" id="bySet" placeholder="mm">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Unidad Diámetro</label>
+                    <div class="radio-group" style="margin-bottom:10px;">
+                        <div class="radio-btn active" id="btnDiaIn" onclick="toggleDiaUnit('in')">Pulgadas (")</div>
+                        <div class="radio-btn" id="btnDiaMm" onclick="toggleDiaUnit('mm')">Milímetros (mm)</div>
+                    </div>
+                    
+                    <div id="inputDiaIn">
+                        <select id="byDiaSel" style="background:#fff;">
+                            <option value="2">2"</option>
+                            <option value="3">3"</option>
+                            <option value="4" selected>4"</option>
+                            <option value="6">6"</option>
+                            <option value="8">8"</option>
+                            <option value="10">10"</option>
+                            <option value="12">12"</option>
+                            <option value="14">14"</option>
+                            <option value="16">16"</option>
+                        </select>
+                    </div>
+                    <div id="inputDiaMm" style="display:none;">
+                        <input type="number" id="byDiaInp" placeholder="Ej: 100 (para DN100)" style="background:#fff;">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Radio Codo</label>
+                    <div class="radio-group">
+                        <div class="radio-btn active" id="byLR" onclick="setByRad('LR')">Largo (x1.5)</div>
+                        <div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto (x1.0)</div>
+                    </div>
+                </div>
+
+                <button class="btn-main" style="margin-top:15px;" onclick="calcBayonetaPro()">Calcular Trazado</button>
             </div>
-            <div class="input-group">
-                <label>Altura (Set)</label> <input type="number" id="bySet" placeholder="mm">
+
+            <div id="resByPro" style="display:none;">
+                <div class="canvas-wrap" style="padding:10px;">
+                    <div class="canvas-label">Esquema de Montaje</div>
+                    <svg id="bySvg" style="width:100%; height:auto; background:#0f172a; border-radius:10px; min-height:200px;"></svg>
+                </div>
+
+                <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+                    <table class="data-table">
+                        <tr>
+                            <td style="text-align:left; color:#166534;">Ángulo Codos</td>
+                            <td style="font-weight:900; color:#166534; font-size:1.1rem;" id="outByAng">0°</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left;">Recorrido (C-C)</td>
+                            <td style="font-weight:bold;" id="outByTrav">0</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left;">Avance Codo (x2)</td>
+                            <td style="font-weight:bold; color:#ef4444;" id="outByDesc">0</td>
+                        </tr>
+                        <tr style="background:#dcfce7;">
+                            <td style="text-align:left; font-weight:800; color:#15803d;">CARRETE (CORTE)</td>
+                            <td style="font-weight:900; font-size:1.4rem; color:#15803d;" id="outByCut">0</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <div class="input-group">
-            <label>Unidad Diámetro</label>
-            <div class="radio-group" style="margin-bottom:10px;">
-                <div class="radio-btn active" id="btnDiaIn" onclick="toggleDiaUnit('in')">Pulgadas (")</div>
-                <div class="radio-btn" id="btnDiaMm" onclick="toggleDiaUnit('mm')">Milímetros (mm)</div>
-            </div>
-            
-            <div id="inputDiaIn">
-                <select id="byDiaSel" style="background:#fff;">
-                    <option value="2">2"</option>
-                    <option value="3">3"</option>
-                    <option value="4" selected>4"</option>
-                    <option value="6">6"</option>
-                    <option value="8">8"</option>
-                    <option value="10">10"</option>
-                    <option value="12">12"</option>
-                    <option value="14">14"</option>
-                    <option value="16">16"</option>
-                </select>
-            </div>
-            <div id="inputDiaMm" style="display:none;">
-                <input type="number" id="byDiaInp" placeholder="Ej: 100 (para DN100)" style="background:#fff;">
-            </div>
-        </div>
-
-        <div class="input-group">
-            <label>Radio Codo</label>
-            <div class="radio-group">
-                <div class="radio-btn active" id="byLR" onclick="setByRad('LR')">Largo (x1.5)</div>
-                <div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto (x1.0)</div>
-            </div>
-        </div>
-
-        <button class="btn-main" style="margin-top:15px;" onclick="calcBayonetaPro()">Calcular Trazado</button>
-    </div>
-
-    <div id="resByPro" style="display:none;">
-        <div class="canvas-wrap" style="padding:10px;">
-            <div class="canvas-label">Esquema de Montaje</div>
-            <svg id="bySvg" style="width:100%; height:auto; background:#0f172a; border-radius:10px; min-height:200px;"></svg>
-        </div>
-
-        <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
-            <table class="data-table">
-                <tr>
-                    <td style="text-align:left; color:#166534;">Ángulo Codos</td>
-                    <td style="font-weight:900; color:#166534; font-size:1.1rem;" id="outByAng">0°</td>
-                </tr>
-                <tr>
-                    <td style="text-align:left;">Recorrido (C-C)</td>
-                    <td style="font-weight:bold;" id="outByTrav">0</td>
-                </tr>
-                <tr>
-                    <td style="text-align:left;">Avance Codo (x2)</td>
-                    <td style="font-weight:bold; color:#ef4444;" id="outByDesc">0</td>
-                </tr>
-                <tr style="background:#dcfce7;">
-                    <td style="text-align:left; font-weight:800; color:#15803d;">CARRETE (CORTE)</td>
-                    <td style="font-weight:900; font-size:1.4rem; color:#15803d;" id="outByCut">0</td>
-                </tr>
-            </table>
-        </div>
-    </div>
-</div>
-
-        <!-- BRIDAS -->
         <div id="tab-bridas" class="section">
             <h2>Manual ASME B16.5</h2>
             <div class="card">
@@ -483,7 +478,6 @@
             </div>
         </div>
 
-        <!-- PESOS -->
         <div id="tab-pesos" class="section">
             <h2>Cálculo de Pesos</h2>
             <div class="card">
@@ -499,7 +493,6 @@
             <div id="resP" class="result-box" style="display:none; text-align:center; background:#fefce8;"><div class="res-val" id="resPVal">0 Kg</div></div>
         </div>
 
-        <!-- CODOS -->
         <div id="tab-codos" class="section">
             <h2>Avance Codos</h2>
             <div class="card">
@@ -514,7 +507,6 @@
             <div id="resCo" class="result-box" style="display:none; text-align:center;"><div class="res-val" id="resCoVal">0 mm</div></div>
         </div>
 
-        <!-- ESLINGAS -->
         <div id="tab-cargas" class="section">
             <h2>Eslingas</h2>
             <div id="slingList"></div>
@@ -523,8 +515,7 @@
     </div>
 </div>
 
-
-   <script>
+<script>
     // --- LÓGICA DE INICIO (SPLASH) ---
     window.addEventListener('load', () => {
         setTimeout(() => {
@@ -706,7 +697,7 @@
         }, 800);
     }
 
- // --- LÓGICA MEJORADA DE BAYONETA (VERSIÓN 2.0) ---
+ // --- LÓGICA MEJORADA DE BAYONETA (VERSIÓN 2.0 RESPONSIVE) ---
     let byType = 'LR'; // Radio Largo por defecto
     let byUnitDia = 'in'; // Unidad defecto
 
@@ -879,10 +870,4 @@
     document.getElementById('slingList').innerHTML = sHtml;
 </script>
 </body>
-</html> 
-
-
-
-
-
-
+</html>
