@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v29.0 (CURVADO + 3D)</title>
+    <title>XURXO - Tubero Pro Elite v30.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -32,15 +32,23 @@
             overflow-x: hidden;
         }
 
-        /* --- SPLASH SCREEN --- */
+        /* --- SPLASH SCREEN (PANTALLA DE INICIO) --- */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 10000; transition: opacity 0.8s ease, visibility 0.8s; color: white; text-align: center;
         }
-        .splash-logo { font-size: 3rem; font-weight: 900; letter-spacing: 5px; color: var(--accent); margin-bottom: 10px; }
-        .splash-version { margin-top: 30px; font-family: monospace; color: var(--text-light); font-size: 0.8rem; }
+        .splash-logo { 
+            font-size: 3.5rem; font-weight: 900; letter-spacing: 5px; color: var(--accent); 
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.3); margin-bottom: 5px; 
+        }
+        .splash-author {
+            font-size: 1.2rem; font-weight: 300; letter-spacing: 4px; color: #cbd5e1;
+            text-transform: uppercase; margin-bottom: 30px; border-bottom: 2px solid var(--accent);
+            padding-bottom: 5px; display: inline-block;
+        }
+        .splash-version { font-family: monospace; color: var(--text-light); font-size: 0.8rem; opacity: 0.7; }
 
         /* --- APP CONTAINER --- */
         .app-container {
@@ -123,7 +131,8 @@
 
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
-    <div class="splash-version">BUILD 2024 - v29.0 (CURVADO + 3D)</div>
+    <div class="splash-author">MADE BY XURXO</div>
+    <div class="splash-version">v30.0 (GOLD EDITION)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
@@ -221,7 +230,7 @@
                 </div>
                 <div class="input-group" id="groupCustRad" style="display:none; animation:fadeIn 0.3s; background:#fff7ed; padding:10px; border-radius:10px; border:1px solid var(--accent);">
                     <label style="color:var(--accent);">Radio Personalizado (mm)</label>
-                    <input type="number" id="byRadVal" placeholder="Ej: 500 (Curvadora)">
+                    <input type="number" id="byRadVal" placeholder="Ej: 500">
                 </div>
                 
                 <button class="btn-main" style="margin-top:15px;" onclick="calcBayonetaPro()">Calcular Trazado</button>
@@ -229,7 +238,7 @@
 
             <div id="resByPro" style="display:none;">
                 <div class="canvas-wrap" style="padding:10px;">
-                    <div class="canvas-label">Vista 3D Isométrica (Visualización Real)</div>
+                    <div class="canvas-label">Vista 3D Isométrica (Realista)</div>
                     <svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:300px; box-shadow:inset 0 0 20px #0f172a;"></svg>
                 </div>
                 <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
@@ -262,7 +271,6 @@
     function setUn(u){unitBP=u;document.getElementById('unIn').classList.toggle('active',u==='in');document.getElementById('unMm').classList.toggle('active',u==='mm');}
     function setDiv(d){divBP=d;document.getElementById('div8').classList.toggle('active',d===8);document.getElementById('div16').classList.toggle('active',d===16);}
     
-    // --- NUEVO SETTER PARA RADIO (INCLUYE LIBRE) ---
     function setByRad(t){
         coType=t;
         document.getElementById('byLR').classList.toggle('active',t==='LR');
@@ -271,6 +279,7 @@
         document.getElementById('groupCustRad').style.display = (t==='Cust') ? 'block' : 'none';
     }
 
+    // --- BOCA PEZ ---
     function calcBP(){
         let cIn=parseFloat(document.getElementById('bpC').value), rIn=parseFloat(document.getElementById('bpR').value), ang=parseFloat(document.getElementById('bpAng').value);
         let marg=document.getElementById('bpMarg').checked?30:10;
@@ -341,7 +350,6 @@
         setTimeout(()=>{
             const { jsPDF } = window.jspdf; const doc=new jsPDF({orientation:'l',unit:'mm',format:exportFormat});
             
-            // Recalcular puntos HD
             let hdPts=[]; for(let i=0;i<=720;i++){
                 let phi=(i/2)*Math.PI/180;
                 let y=(Math.sqrt(Math.pow(lastBP.R_cab_mm,2)-Math.pow(lastBP.r_ram_mm*Math.sin(phi),2))/Math.sin(lastBP.angRad))-(lastBP.r_ram_mm*Math.cos(phi)/Math.tan(lastBP.angRad));
@@ -360,17 +368,14 @@
                 let start=p*pW, end=(p+1)*pW, yBase=180, mX=20;
                 let currentWidth = Math.min(pW, lastBP.per - start);
 
-                // --- DIBUJO DEL MARCO ---
+                // MARCO
                 doc.setDrawColor(0); doc.setLineWidth(0.3);
-                // Linea Suelo
                 doc.line(mX, yBase, mX + currentWidth, yBase);
-                // Linea Techo (Altura max)
                 doc.line(mX, yBase - totalHeight, mX + currentWidth, yBase - totalHeight);
-                // Cierres laterales de pagina
                 doc.line(mX, yBase, mX, yBase - totalHeight);
                 doc.line(mX + currentWidth, yBase, mX + currentWidth, yBase - totalHeight);
 
-                // --- CURVA CORTE ---
+                // CORTE
                 doc.setLineWidth(1.0); 
                 for(let i=0; i<hdPts.length-1; i++){
                     let p1=hdPts[i], p2=hdPts[i+1];
@@ -381,14 +386,14 @@
                     }
                 }
 
-                // Faja
+                // FAJA
                 doc.setLineWidth(0.3); doc.setLineDash([2,2],0); doc.setDrawColor(100);
                 let fy = yBase - lastBP.margin;
                 doc.line(mX, fy, mX+currentWidth, fy);
                 doc.text(`Ref. ${lastBP.margin}mm`, mX+2, fy-2);
                 doc.setLineDash([],0);
                 
-                // Guías verticales
+                // VERTICALES
                 let qs = lastBP.per/4;
                 for(let q=0; q<=4; q++){
                     let qx = q*qs;
@@ -419,7 +424,7 @@
         document.getElementById('loading-overlay').style.display='none';
     }
 
-    // --- BAYONETA + RADIO LIBRE + 3D MASTER ---
+    // --- BAYONETA LOGIC (RADIO LIBRE + 3D) ---
     let byUnitDia='in';
     function toggleDiaUnit(u){byUnitDia=u;document.getElementById('btnDiaIn').classList.toggle('active',u==='in');document.getElementById('btnDiaMm').classList.toggle('active',u==='mm');document.getElementById('inputDiaIn').style.display=u==='in'?'block':'none';document.getElementById('inputDiaMm').style.display=u==='mm'?'block':'none';}
     function toggleRoll(){const c=document.getElementById('checkRolling').checked;document.getElementById('groupRoll').style.display=c?'block':'none';document.getElementById('byRoll').value='';}
@@ -432,18 +437,13 @@
         let dBase=0; if(byUnitDia==='in') dBase=parseFloat(document.getElementById('byDiaSel').value)*25.4; else dBase=parseFloat(document.getElementById('byDiaInp').value);
         if(!run||!set||!dBase){showMsg("Faltan datos");return;}
         
-        // CALCULO RADIO
         let rad = 0;
         if(coType==='LR') rad=dBase*1.5;
         else if(coType==='SR') rad=dBase*1.0;
-        else {
-            rad = parseFloat(document.getElementById('byRadVal').value);
-            if(!rad || rad<=0){ showMsg("Introduce el Radio"); return; }
-        }
+        else { rad=parseFloat(document.getElementById('byRadVal').value); if(!rad||rad<=0){showMsg("Falta Radio");return;} }
 
         const travel=Math.sqrt(run*run+effSet*effSet), angRad=Math.atan(effSet/run), angDeg=angRad*180/Math.PI;
         const ded=rad*Math.tan(angRad/2)*2, cut=travel-ded;
-        
         document.getElementById('resByPro').style.display='block';
         document.getElementById('outByAng').innerText=angDeg.toFixed(1)+"°";
         document.getElementById('outByTrav').innerText=travel.toFixed(1)+" mm";
@@ -451,7 +451,6 @@
         let cEl=document.getElementById('outByCut');
         cEl.innerText=cut<0?"IMPOSIBLE":cut.toFixed(1)+" mm"; cEl.style.color=cut<0?"red":"#15803d";
         
-        // Llamada al motor 3D Maestro (Restored)
         drawBayonetaIso(run,set,isRolling?roll:0,cut,angDeg,effSet);
     }
 
@@ -466,13 +465,11 @@
         svg.setAttribute("viewBox", `${minX-pad} ${minY-pad} ${w+pad*2} ${h+pad*2}`);
         svg.innerHTML+=`<defs><marker id="AH" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto"><path d="M0,0 L0,4 L4,2 z" fill="#94a3b8"/></marker></defs>`;
         
-        // WIREFRAME
         svg.innerHTML+=`<line x1="${s0.x}" y1="${s0.y}" x2="${sRun.x}" y2="${sRun.y}" stroke="#475569" stroke-width="1" stroke-dasharray="${stW*1.5}" opacity="0.5"/>`;
         svg.innerHTML+=`<line x1="${sRun.x}" y1="${sRun.y}" x2="${sCorner.x}" y2="${sCorner.y}" stroke="#475569" stroke-width="1" stroke-dasharray="${stW*1.5}" opacity="0.5"/>`;
         if(roll>0) svg.innerHTML+=`<path d="M ${s0.x} ${s0.y} L ${sRun.x} ${sRun.y} L ${sCorner.x} ${sCorner.y} Z" fill="rgba(255,255,255,0.03)" stroke="none"/>`;
         svg.innerHTML+=`<line x1="${sCorner.x}" y1="${sCorner.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="#475569" stroke-width="1" stroke-dasharray="${stW*1.5}" opacity="0.5"/>`;
         
-        // SOLID PIPE
         const pCol=cut<0?"#ef4444":"#facc15", pStr=stW*3.5;
         svg.innerHTML+=`<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="black" stroke-width="${pStr}" stroke-linecap="round" opacity="0.3" transform="translate(4,4)"/>`;
         svg.innerHTML+=`<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="${pCol}" stroke-width="${pStr}" stroke-linecap="round"/>`;
@@ -481,7 +478,6 @@
         svg.innerHTML+=`<circle cx="${s0.x}" cy="${s0.y}" r="${fr}" fill="#334155" stroke="#94a3b8" stroke-width="1"/>`;
         svg.innerHTML+=`<circle cx="${sEnd.x}" cy="${sEnd.y}" r="${fr}" fill="#334155" stroke="#94a3b8" stroke-width="1"/>`;
         
-        // COTAS
         const tSz=stW*3.5;
         function dDim(x1,y1,x2,y2,c,l){
             svg.innerHTML+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${stW/1.5}"/>`;
