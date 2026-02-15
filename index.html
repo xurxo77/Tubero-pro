@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v24.1 (Fixed)</title>
+    <title>XURXO - Tubero Pro Elite v24.2 (PDF FIXED)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -32,7 +32,7 @@
             overflow-x: hidden;
         }
 
-        /* --- PANTALLA DE INICIO --- */
+        /* --- SPLASH SCREEN --- */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
@@ -42,7 +42,7 @@
         .splash-logo { font-size: 3rem; font-weight: 900; letter-spacing: 5px; color: var(--accent); margin-bottom: 10px; }
         .splash-version { margin-top: 30px; font-family: monospace; color: var(--text-light); font-size: 0.8rem; }
 
-        /* --- APP --- */
+        /* --- APP CONTAINER --- */
         .app-container {
             width: 100%; max-width: 500px; background: #f1f5f9; min-height: 98vh; border-radius: 20px;
             overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.5); position: relative;
@@ -123,14 +123,14 @@
 
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
-    <div class="splash-version">BUILD 2024 - v24.1 (FIXED)</div>
+    <div class="splash-version">BUILD 2024 - v24.2 (PDF FIXED)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">PROCESANDO</div>
+    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">GENERANDO PDF</div>
 </div>
 
 <div class="app-container" id="capture-area">
@@ -247,7 +247,7 @@
     function setDiv(d){divBP=d;document.getElementById('div8').classList.toggle('active',d===8);document.getElementById('div16').classList.toggle('active',d===16);}
     function setCo(t){coType=t;document.getElementById('coLR').classList.toggle('active',t==='LR');document.getElementById('coSR').classList.toggle('active',t==='SR');}
 
-    // --- BOCA PEZ (FIXED VISUALIZATION) ---
+    // --- BOCA PEZ ---
     function calcBP(){
         let cIn=parseFloat(document.getElementById('bpC').value), rIn=parseFloat(document.getElementById('bpR').value), ang=parseFloat(document.getElementById('bpAng').value);
         let marg=document.getElementById('bpMarg').checked?30:10;
@@ -268,6 +268,8 @@
         document.getElementById('bpPer').innerText=per.toFixed(1); document.getElementById('bpPas').innerText=paso.toFixed(1);
         drawJointSvg(R_cab, r_ram, ang); drawTemplateSvg();
     }
+    
+    // SVG Preview
     function drawTemplateSvg(){
         let svg=document.getElementById('bpSvg'), w=400, h=160, step=w/(lastBP.pts.length-1);
         let maxVal=Math.max(...lastBP.pts), scY=(h-20)/(maxVal||1), path=`M 0 ${h}`;
@@ -275,29 +277,24 @@
         let fajaY=h-(lastBP.margin*scY);
         svg.innerHTML=`<rect width="400" height="160" fill="#0f172a"/><line x1="0" y1="${fajaY}" x2="400" y2="${fajaY}" stroke="#facc15" stroke-dasharray="4"/><path d="${path}" stroke="#0284c7" stroke-width="2" fill="rgba(2,132,199,0.2)"/>`;
     }
+
+    // SVG Technical View (Boca de Pez Lateral) - RESTAURADA
     function drawJointSvg(R, r, ang){
-        // ESTA FUNCION ESTABA ROTA O SIMPLIFICADA, AHORA DIBUJA EL ESQUEMA REAL
         const svg = document.getElementById('jointSvg'); svg.innerHTML='';
         const angRad = ang * Math.PI / 180;
         const scale = 110 / (R * 2); 
         const scR = R * scale, scr = r * scale;
         const cx = 200, cy = 200;
         
-        // Cabezal (Horizontal)
         let content = `<rect width="400" height="300" fill="#0f172a"/>`;
-        content += `<rect x="50" y="${cy - scR}" width="300" height="${scR * 2}" fill="none" stroke="#475569" stroke-width="2" rx="2"/>`; // Cuerpo
-        content += `<line x1="40" y1="${cy}" x2="360" y2="${cy}" stroke="#64748b" stroke-dasharray="10,5"/>`; // Eje cabezal
+        content += `<rect x="50" y="${cy - scR}" width="300" height="${scR * 2}" fill="none" stroke="#475569" stroke-width="2" rx="2"/>`; 
+        content += `<line x1="40" y1="${cy}" x2="360" y2="${cy}" stroke="#64748b" stroke-dasharray="10,5"/>`; 
 
-        // Ramal (Inclinado)
         const len = 140;
         const vx = Math.cos(angRad), vy = -Math.sin(angRad);
-        // Puntos base en el cabezal (aproximados para dibujo)
-        const xBase = cx, yBase = cy - scR; // Punto contacto superior
-        // Calculo visual del tubo entrante
         const x1 = cx - scr*Math.sin(angRad); 
-        const y1 = (cy - scR/2) - scr*Math.cos(angRad); // Ajuste visual
         
-        // Dibujamos linea central ramal
+        // Eje central ramal
         content += `<line x1="${cx}" y1="${cy}" x2="${cx + len*vx}" y2="${cy + len*vy}" stroke="#facc15" stroke-dasharray="5,2" opacity="0.8"/>`;
         
         // Cuerpo Ramal
@@ -309,46 +306,90 @@
         const p3x = p2x + len*vx, p3y = p2y + len*vy;
         const p4x = p1x + len*vx, p4y = p1y + len*vy;
         
-        // ClipPath para que el ramal no se pinte "dentro" del cabezal de forma fea, sino encima
-        // Simplificado: Dibujo lineas laterales
         content += `<line x1="${p1x}" y1="${p1y - scR}" x2="${p4x}" y2="${p4y - scR}" stroke="#38bdf8" stroke-width="2"/>`;
         content += `<line x1="${p2x}" y1="${p2y - scR}" x2="${p3x}" y2="${p3y - scR}" stroke="#38bdf8" stroke-width="2"/>`;
         
-        // Texto Angulo
         content += `<text x="${cx + 60}" y="${cy - scR - 10}" fill="#facc15" font-size="16" font-weight="bold">${ang}°</text>`;
-        
         svg.innerHTML = content;
     }
 
-    // --- PDF ---
+    // --- PDF FIX (NEGRO Y LINEAS VISIBLES) ---
     function pdfMultiPaginado(){
         if(!lastBP.pts.length)return;
         document.getElementById('loading-overlay').style.display='flex';
         setTimeout(()=>{
             const { jsPDF } = window.jspdf; const doc=new jsPDF({orientation:'l',unit:'mm',format:exportFormat});
+            
+            // Recalcular puntos en alta definición
             let hdPts=[]; for(let i=0;i<=360;i++){
                 let phi=i*Math.PI/180;
                 let y=(Math.sqrt(Math.pow(lastBP.R_cab_mm,2)-Math.pow(lastBP.r_ram_mm*Math.sin(phi),2))/Math.sin(lastBP.angRad))-(lastBP.r_ram_mm*Math.cos(phi)/Math.tan(lastBP.angRad));
                 hdPts.push({x:(i/360)*lastBP.per,y:(y-lastBP.minY_raw)+lastBP.margin});
             }
+            
             let pW=(exportFormat==='a3'?420:297)-40, nP=Math.ceil(lastBP.per/pW);
             for(let p=0;p<nP;p++){
                 if(p>0)doc.addPage();
-                doc.setFontSize(10);doc.text(`PLANTILLA 1:1 - PÁG ${p+1}/${nP}`,20,15);
+                
+                // Configurar Estilos Básicos
+                doc.setDrawColor(0); // Negro absoluto
+                doc.setLineWidth(0.4); 
+                doc.setFontSize(10); doc.setTextColor(0);
+                
+                // Texto Info
+                doc.text(`PLANTILLA 1:1 - PÁG ${p+1}/${nP} (XURXO)`, 20, 15);
+                doc.setFontSize(8); doc.setTextColor(100);
+                doc.text(`Ramal: ${lastBP.r}" | Perímetro Total: ${lastBP.per.toFixed(1)}mm`, 20, 20);
+
                 let start=p*pW, end=(p+1)*pW, yBase=180;
-                doc.line(20,yBase-lastBP.margin,20+pW,yBase-lastBP.margin);
+                let marginX = 20;
+
+                // 1. DIBUJAR FAJA (Linea de doblado)
+                doc.setLineDash([3, 3], 0); doc.setDrawColor(100); // Gris discontinuo
+                let fajaY = yBase-lastBP.margin;
+                doc.line(marginX, fajaY, marginX+pW, fajaY);
+                doc.text(`REFERENCIA (${lastBP.margin}mm)`, marginX+5, fajaY-2);
+
+                // 2. DIBUJAR CURVA DE CORTE (Negro Sólido)
+                doc.setLineDash([], 0); doc.setDrawColor(0); doc.setLineWidth(0.8); // Linea gruesa corte
+                
                 for(let i=0;i<hdPts.length-1;i++){
                     let p1=hdPts[i], p2=hdPts[i+1];
-                    if(p2.x>start && p1.x<end){
-                        let x1=(p1.x-start)+20, y1=yBase-p1.y, x2=(p2.x-start)+20, y2=yBase-p2.y;
-                        if(x1>=20 && x2<=20+pW)doc.line(x1,y1,x2,y2);
+                    // Dibujar solo si el segmento está dentro de la "ventana" de esta página
+                    if(p2.x > start && p1.x < end){
+                        let x1=(p1.x-start)+marginX; 
+                        let y1=yBase-p1.y; 
+                        let x2=(p2.x-start)+marginX; 
+                        let y2=yBase-p2.y;
+                        
+                        // Clamping para no dibujar fuera de margenes
+                        if(x1 >= marginX && x2 <= marginX+pW) {
+                            doc.line(x1,y1,x2,y2);
+                        }
                     }
                 }
-                doc.line(20,yBase,20+pW,yBase);
+                
+                // 3. Linea Base y Verticales
+                doc.setLineWidth(0.2); doc.setDrawColor(0);
+                doc.line(marginX, yBase, marginX+pW, yBase); // Suelo
+                
+                // Lineas verticales de cuadrantes (0, 90, 180, 270, 360)
+                let quadStep = lastBP.per / 4;
+                for(let q=0; q<=4; q++){
+                    let qX = q * quadStep;
+                    if(qX >= start && qX <= end){
+                        let plotX = (qX - start) + marginX;
+                        doc.setDrawColor(200); // Gris muy claro
+                        doc.line(plotX, yBase, plotX, yBase - 150);
+                        doc.text(`${q*90}°`, plotX+1, yBase-2);
+                    }
+                }
             }
-            doc.save('Plantilla.pdf'); document.getElementById('loading-overlay').style.display='none';
+            doc.save(`Plantilla_Corte_Xurxo_${lastBP.r}.pdf`); 
+            document.getElementById('loading-overlay').style.display='none';
         },1000);
     }
+    
     async function pdfInforme(){
         document.getElementById('loading-overlay').style.display='flex';
         document.getElementById('nav-ignore').style.display='none';
@@ -356,7 +397,7 @@
         document.getElementById('btns-ignore').style.display='none';
         const c=await html2canvas(document.getElementById('capture-area'),{scale:2});
         const pdf=new window.jspdf.jsPDF(); pdf.addImage(c.toDataURL('image/png'),'PNG',10,20,190,0);
-        pdf.save('Informe.pdf');
+        pdf.save('Informe_Tubero.pdf');
         document.getElementById('nav-ignore').style.display='grid';
         document.getElementById('form-ignore').style.display='block';
         document.getElementById('btns-ignore').style.display='block';
