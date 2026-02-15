@@ -4,61 +4,120 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v34.0</title>
+    <title>XURXO - Tubero Pro Elite v33.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --bg-body: #0f172a; --primary: #1e293b; --accent: #f59e0b;
-            --blue-pro: #0284c7; --text-main: #334155; --text-light: #94a3b8;
-            --workshop-green: #059669; --pdf-red: #ef4444; --error-red: #b91c1c;
+            --bg-body: #0f172a;
+            --primary: #1e293b;
+            --accent: #f59e0b;
+            --blue-pro: #0284c7;
+            --text-main: #334155;
+            --text-light: #94a3b8;
+            --workshop-green: #059669;
+            --pdf-red: #ef4444;
+            --error-red: #b91c1c;
         }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg-body); color: var(--text-main); padding: 10px; display: flex; justify-content: center; overflow-x: hidden; }
-        
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* --- SPLASH SCREEN --- */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000; transition: opacity 0.8s ease; color: white; text-align: center;
+            z-index: 10000; transition: opacity 0.8s ease, visibility 0.8s; color: white; text-align: center;
         }
         .splash-logo { font-size: 3.5rem; font-weight: 900; letter-spacing: 5px; color: var(--accent); margin-bottom: 5px; }
-        .splash-author { font-size: 1.2rem; font-weight: 300; letter-spacing: 4px; color: #cbd5e1; text-transform: uppercase; margin-bottom: 30px; border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
+        .splash-author {
+            font-size: 1.2rem; font-weight: 300; letter-spacing: 4px; color: #cbd5e1;
+            text-transform: uppercase; margin-bottom: 30px; border-bottom: 2px solid var(--accent);
+            padding-bottom: 5px; display: inline-block;
+        }
 
-        .app-container { width: 100%; max-width: 500px; background: #f1f5f9; min-height: 98vh; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.5); position: relative; }
-        header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 25px 15px; text-align: center; border-bottom: 4px solid var(--accent); }
-        .owner-badge { background: var(--accent); color: #000; padding: 4px 15px; border-radius: 50px; font-size: 0.75rem; font-weight: 800; display: inline-block; margin-top: 8px; text-transform: uppercase; }
-        #ui-message { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--error-red); color: white; padding: 12px 20px; border-radius: 10px; z-index: 10000; display: none; width: 90%; text-align: center; }
+        /* --- APP CONTAINER --- */
+        .app-container {
+            width: 100%; max-width: 500px; background: #f1f5f9; min-height: 98vh; border-radius: 20px;
+            overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.5); position: relative;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 25px 15px;
+            text-align: center; border-bottom: 4px solid var(--accent);
+        }
+
+        .owner-badge {
+            background: var(--accent); color: #000; padding: 4px 15px; border-radius: 50px;
+            font-size: 0.75rem; font-weight: 800; display: inline-block; margin-top: 8px; text-transform: uppercase;
+        }
+
+        #ui-message {
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--error-red);
+            color: white; padding: 12px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: bold;
+            z-index: 10000; display: none; width: 90%; text-align: center;
+        }
 
         .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: #1e293b; gap: 1px; }
-        .tab-btn { background: #1e293b; border: none; color: #94a3b8; padding: 12px 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; transition: 0.3s; }
+        .tab-btn {
+            background: #1e293b; border: none; color: #94a3b8; padding: 12px 5px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; transition: 0.3s;
+        }
         .tab-btn svg { width: 18px; height: 18px; fill: currentColor; margin-bottom: 4px; }
         .tab-btn.active { color: var(--accent); background: #334155; border-bottom: 3px solid var(--accent); }
 
         .main-content { flex: 1; padding: 15px; overflow-y: auto; }
         .section { display: none; }
         .section.active { display: block; }
+
+        h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 12px; border-left: 4px solid var(--accent); padding-left: 10px; }
+
         .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase; }
-        .input-group input, .input-group select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; font-weight: 600; }
 
-        .btn-main { background: var(--blue-pro); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .canvas-wrap { background: #0f172a; border-radius: 15px; margin-top: 15px; padding: 15px; overflow: hidden; border: 1px solid #334155; }
+        .btn-main {
+            background: var(--blue-pro); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px;
+            font-weight: 700; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+
+        .canvas-wrap {
+            background: #0f172a; border-radius: 15px; margin-top: 15px; padding: 15px; overflow: hidden; border: 1px solid #334155;
+        }
         .canvas-label { font-size: 0.65rem; color: var(--accent); font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
 
         .radio-group { display: flex; gap: 8px; }
         .radio-btn { flex: 1; padding: 12px; background: #e2e8f0; border-radius: 10px; text-align: center; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
         .radio-btn.active { background: var(--blue-pro); color: white; }
 
-        #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; }
+        #loading-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; text-align: center; padding: 20px;
+        }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        .data-table th { background: #1e293b; color: white; padding: 10px; text-align: center; }
         .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 600; }
-        .switch-wrap { display: flex; align-items: center; justify-content: space-between; background: #e0f2fe; padding: 10px; border-radius: 10px; margin-bottom: 15px; cursor: pointer; }
+        
+        .switch-wrap { display: flex; align-items: center; justify-content: space-between; background: #e0f2fe; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #bae6fd; cursor: pointer; }
+        .switch-label { font-weight: 700; color: #0369a1; font-size: 0.85rem; text-transform: uppercase; }
+        .switch-checkbox { width: 20px; height: 20px; accent-color: var(--blue-pro); }
+
         .pdf-exporting { overflow: visible !important; height: auto !important; }
     </style>
 </head>
@@ -67,18 +126,21 @@
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
     <div class="splash-author">MADE BY XURXO</div>
-    <div class="splash-version">v34.0 (DIAGONAL REAL)</div>
+    <div class="splash-version">v33.0 (TALLER EDITION)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div id="loading-text">PROCESANDO...</div>
+    <div id="loading-text" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">PROCESANDO...</div>
 </div>
 
 <div class="app-container" id="capture-area">
-    <header><h1>TUBERO PRO</h1><div class="owner-badge">OFICIAL: XURXO</div></header>
+    <header>
+        <h1>TUBERO PRO</h1>
+        <div class="owner-badge">OFICIAL: XURXO</div>
+    </header>
 
     <nav class="nav-tabs" id="nav-ignore">
         <button class="tab-btn active" onclick="setTab('tab-bocapez', this)"><svg viewBox="0 0 24 24"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z"/></svg>Boca Pez</button>
@@ -90,71 +152,91 @@
     </nav>
 
     <div class="main-content" id="main-scroll">
+        
         <div id="tab-bocapez" class="section active">
             <h2>Injerto Boca de Pez</h2>
             <div class="card" id="form-ignore">
-                <div class="input-group"><label>Cabezal (OD)</label><input type="number" id="bpC" placeholder="6"></div>
-                <div class="input-group"><label>Ramal (OD)</label><input type="number" id="bpR" placeholder="4"></div>
-                <div class="input-group"><label>Ángulo (°)</label><input type="number" id="bpAng" value="90"></div>
-                <div class="input-group"><label>Divisiones</label><div class="radio-group"><div class="radio-btn active" id="div8" onclick="setDiv(8)">8</div><div class="radio-btn" id="div16" onclick="setDiv(16)">16</div></div></div>
-                <label style="display:flex; align-items:center; gap:10px; font-size:0.85rem; padding:12px; background:#fff7ed; border-radius:10px;"><input type="checkbox" id="bpMarg"> +30mm Faja</label>
+                <div class="input-group">
+                    <label>Unidades</label>
+                    <div class="radio-group">
+                        <div class="radio-btn active" id="unIn" onclick="setUn('in')">Pulgadas</div>
+                        <div class="radio-btn" id="unMm" onclick="setUn('mm')">mm</div>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                    <div class="input-group"><label>Cabezal (OD)</label><input type="number" id="bpC" placeholder="6"></div>
+                    <div class="input-group"><label>Ramal (OD)</label><input type="number" id="bpR" placeholder="4"></div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                    <div class="input-group"><label>Ángulo (°)</label><input type="number" id="bpAng" value="90"></div>
+                    <div class="input-group"><label>Divisiones</label><div class="radio-group"><div class="radio-btn active" id="div8" onclick="setDiv(8)">8</div><div class="radio-btn" id="div16" onclick="setDiv(16)">16</div></div></div>
+                </div>
+                <label style="display:flex; align-items:center; gap:10px; font-size:0.85rem; background:#fff7ed; padding:12px; border-radius:10px; border:1px solid #ffedd5; color:#9a3412; cursor:pointer;">
+                    <input type="checkbox" id="bpMarg" style="width:18px; height:18px;"> +30mm Faja de Papel
+                </label>
                 <button class="btn-main" style="margin-top:15px;" onclick="calcBP()">Calcular Trazado</button>
             </div>
+
             <div id="resBP" style="display:none">
-                <div class="canvas-wrap"><div class="canvas-label">Esquema Montaje</div><svg id="jointSvg" viewBox="0 0 400 300"></svg></div>
-                <div class="card" id="btns-ignore">
-                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">PLANTILLA 1:1</button>
-                    <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">INFORME PDF</button>
+                <div class="canvas-wrap">
+                    <div class="canvas-label">Vista Técnica de Montaje</div>
+                    <svg id="jointSvg" viewBox="0 0 400 300" style="background: #0f172a;"></svg>
                 </div>
-                <div class="card" style="padding:0;"><table class="data-table" id="tableBP"><thead><tr><th>PTO</th><th>GRAD</th><th>ORD (mm)</th></tr></thead><tbody></tbody></table></div>
-                <div class="canvas-wrap"><svg id="bpSvg" viewBox="0 0 400 160"></svg></div>
+                <div class="card" id="btns-ignore">
+                    <div class="input-group"><label>Papel</label><div class="radio-group"><div class="radio-btn active" id="formatA4" onclick="setFormat('a4')">A4</div><div class="radio-btn" id="formatA3" onclick="setFormat('a3')">A3</div></div></div>
+                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">EXPORTAR PLANTILLA (1:1)</button>
+                    <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">EXPORTAR INFORME PDF</button>
+                </div>
+                <div class="card" style="padding:0; overflow:hidden;"><table class="data-table" id="tableBP"><thead><tr><th>PTO</th><th>GRAD</th><th>ORD (mm)</th></tr></thead><tbody></tbody></table></div>
+                <div class="canvas-wrap"><div class="canvas-label">Esquema Plantilla</div><svg id="bpSvg" viewBox="0 0 400 160"></svg></div>
             </div>
         </div>
 
         <div id="tab-bayoneta" class="section">
-            <h2>Bayoneta Isométrica</h2>
+            <h2>Cálculo de Bayonetas</h2>
             <div class="card" id="form-by-ignore">
-                <label class="switch-wrap"><span class="switch-label">GIRADA (ROLLING)</span><input type="checkbox" id="checkRolling" onchange="toggleRoll()"></label>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div class="input-group"><label>Avance (Run)</label><input type="number" id="byRun" placeholder="mm"></div>
-                    <div class="input-group"><label>Altura (Set)</label><input type="number" id="bySet" placeholder="mm"></div>
+                <label class="switch-wrap"><span class="switch-label">ACTIVAR GIRADA (3D / ROLLING)</span><input type="checkbox" id="checkRolling" class="switch-checkbox" onchange="toggleRoll()"></label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <div class="input-group"><label style="color:#2563eb;">Avance (Run)</label><input type="number" id="byRun" placeholder="mm"></div>
+                    <div class="input-group"><label style="color:#dc2626;">Altura (Set)</label><input type="number" id="bySet" placeholder="mm"></div>
                 </div>
-                <div class="input-group" id="groupRoll" style="display:none; background:#e0f2fe; padding:10px; border-radius:10px;"><label>Desplazamiento (Roll)</label><input type="number" id="byRoll" placeholder="mm"></div>
-                <div class="input-group"><label>Radio</label><div class="radio-group">
-                    <div class="radio-btn active" id="byLR" onclick="setByRad('LR')">LR</div>
-                    <div class="radio-btn" id="bySR" onclick="setByRad('SR')">SR</div>
+                <div class="input-group" id="groupRoll" style="display:none; background:#e0f2fe; padding:10px; border-radius:10px;"><label style="color:#059669;">Desplazamiento (Roll)</label><input type="number" id="byRoll" placeholder="mm"></div>
+                <div class="input-group"><label>Radio Curvatura</label><div class="radio-group">
+                    <div class="radio-btn active" id="byLR" onclick="setByRad('LR')">Largo</div>
+                    <div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto</div>
                     <div class="radio-btn" id="byCust" onclick="setByRad('Cust')">Libre</div>
                 </div></div>
-                <div class="input-group" id="groupCustRad" style="display:none;"><input type="number" id="byRadVal" placeholder="Radio mm"></div>
-                <button class="btn-main" onclick="calcBayonetaPro()">Calcular Bayoneta</button>
+                <div class="input-group" id="groupCustRad" style="display:none; background:#fff7ed; padding:10px; border-radius:10px; border:1px solid var(--accent);"><label>Radio Manual (mm)</label><input type="number" id="byRadVal" placeholder="Ej: 500"></div>
+                <button class="btn-main" style="margin-top:15px;" onclick="calcBayonetaPro()">Calcular Bayoneta</button>
             </div>
             <div id="resByPro" style="display:none;">
-                <div class="canvas-wrap"><div class="canvas-label">Esquema de Taller (ISO)</div><svg id="bySvg" style="width:100%; min-height:350px;"></svg></div>
+                <div class="canvas-wrap" style="padding:10px;"><div class="canvas-label">Isométrica de Tubería</div><svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:350px;"></svg></div>
                 <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;"><table class="data-table">
-                    <tr><td>Ángulo</td><td id="outByAng">0°</td></tr>
-                    <tr><td>Diagonal</td><td id="outByTrav">0</td></tr>
-                    <tr style="background:#dcfce7;"><td>CORTE CARRETE</td><td id="outByCut" style="font-size:1.4rem; color:#15803d;">0</td></tr>
+                    <tr><td style="text-align:left;">Ángulo Curva</td><td id="outByAng" style="font-weight:900;">0°</td></tr>
+                    <tr><td style="text-align:left;">Recorrido (C-C)</td><td id="outByTrav" style="font-weight:bold;">0</td></tr>
+                    <tr style="background:#dcfce7;"><td style="text-align:left; font-weight:800; color:#15803d;">CARRETE (CORTE)</td><td style="font-weight:900; font-size:1.4rem; color:#15803d;" id="outByCut">0</td></tr>
                 </table></div>
-                <button class="btn-main" style="background:var(--pdf-red);" onclick="pdfInforme()">INFORME PDF</button>
+                <button class="btn-main" id="btn-inf-by" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">EXPORTAR INFORME PDF</button>
             </div>
         </div>
-        
-        <div id="tab-bridas" class="section"><h2>Bridas ASME</h2><div class="card">Datos ASME B16.5</div></div>
-        <div id="tab-pesos" class="section"><h2>Pesos</h2><div class="card">Calculadora de KG</div></div>
-        <div id="tab-codos" class="section"><h2>Avance</h2><div class="card">Codos 45/90</div></div>
+
+        <div id="tab-bridas" class="section"><h2>Bridas ASME</h2><div class="card"><div class="input-group"><label>NPS</label><select id="brSize"><option value="4">4"</option><option value="6">6"</option></select></div><button class="btn-main" onclick="getBrida()">Consultar</button></div><div id="brRes" class="card" style="display:none"><table class="data-table"><tr><td>OD</td><td id="brOD">0</td></tr><tr><td>BC</td><td id="brBC">0</td></tr></table></div></div>
+        <div id="tab-pesos" class="section"><h2>Pesos</h2><div class="card"><div class="input-group"><label>Largo (m)</label><input type="number" id="pL"></div><button class="btn-main" onclick="calcPeso()">Calcular</button></div><div id="resP" class="card" style="display:none; text-align:center;"><div id="resPVal">0 Kg</div></div></div>
+        <div id="tab-codos" class="section"><h2>Avance</h2><div class="card"><div class="input-group"><label>Diámetro</label><input type="number" id="coD"></div><button class="btn-main" onclick="calcCo()">Calcular</button></div><div id="resCo" class="card" style="display:none; text-align:center;"><div id="resCoVal">0 mm</div></div></div>
         <div id="tab-cargas" class="section"><h2>Eslingas</h2><div id="slingList"></div></div>
     </div>
 </div>
 
 <script>
-    window.addEventListener('load', () => { setTimeout(() => { document.getElementById('splash-screen').style.opacity = '0'; setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; }, 800); }, 2500); });
+    window.addEventListener('load', () => { setTimeout(() => { document.getElementById('splash-screen').style.opacity = '0'; setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; }, 800); }, 3000); });
     let unitBP='in', divBP=16, exportFormat='a4', coType='LR';
-    let lastBP = { pts: [], per: 0, R_cab_mm: 0, r_ram_mm: 0, angRad: 0, div: 16, margin: 10, minY_raw: 0 };
+    let lastBP = { pts: [], per: 0, r: 0, c: 0, R_cab_mm: 0, r_ram_mm: 0, angRad: 0, unit: 'in', paso: 0, angle: 90, margin: 0, minY_raw: 0, div: 16 };
 
     function showMsg(t){const b=document.getElementById('ui-message');b.innerText=t;b.style.display='block';setTimeout(()=>b.style.display='none',3000);}
     function setTab(id,b){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(bn=>bn.classList.remove('active'));document.getElementById(id).classList.add('active');b.classList.add('active');}
     function setFormat(f){exportFormat=f;document.getElementById('formatA4').classList.toggle('active',f==='a4');document.getElementById('formatA3').classList.toggle('active',f==='a3');}
-    function getOD(i){return i*25.4;} // Simplificado
+    function getOD(i){const m={"2":60.3,"4":114.3,"6":168.3,"8":219.1,"12":323.8};return m[i]||i*25.4;}
+    function setUn(u){unitBP=u;document.getElementById('unIn').classList.toggle('active',u==='in');document.getElementById('unMm').classList.toggle('active',u==='mm');}
     function setDiv(d){divBP=d;document.getElementById('div8').classList.toggle('active',d===8);document.getElementById('div16').classList.toggle('active',d===16);}
     function setByRad(t){coType=t;document.getElementById('byLR').classList.toggle('active',t==='LR');document.getElementById('bySR').classList.toggle('active',t==='SR');document.getElementById('byCust').classList.toggle('active',t==='Cust');document.getElementById('groupCustRad').style.display=(t==='Cust')?'block':'none';}
 
@@ -162,15 +244,15 @@
     function calcBP(){
         let cIn=parseFloat(document.getElementById('bpC').value), rIn=parseFloat(document.getElementById('bpR').value), ang=parseFloat(document.getElementById('bpAng').value), marg=document.getElementById('bpMarg').checked?30:10;
         if(!cIn||!rIn||!ang){showMsg("Faltan datos");return;}
-        let R_cab=getOD(cIn)/2, r_ram=getOD(rIn)/2, angRad=ang*Math.PI/180;
-        let per=r_ram*2*Math.PI, rawPts=[];
+        let R_cab=(unitBP==='in'?getOD(cIn):cIn)/2, r_ram=(unitBP==='in'?getOD(rIn):rIn)/2, angRad=ang*Math.PI/180;
+        let per=r_ram*2*Math.PI, paso=per/divBP, rawPts=[];
         for(let i=0;i<=divBP;i++){
             let phi=(i*360/divBP)*Math.PI/180;
             let y=(Math.sqrt(Math.pow(R_cab,2)-Math.pow(r_ram*Math.sin(phi),2))/Math.sin(angRad))-(r_ram*Math.cos(phi)/Math.tan(angRad));
             rawPts.push(y);
         }
         let minY=Math.min(...rawPts), finalPts=rawPts.map(y=>(y-minY)+marg);
-        lastBP={per, pts:finalPts, margin:marg, R_cab_mm:R_cab, r_ram_mm:r_ram, angRad, minY_raw:minY, div:divBP, r:rIn};
+        lastBP={per, r:rIn, c:cIn, pts:finalPts, unit:unitBP, paso, angle:ang, margin:marg, R_cab_mm:R_cab, r_ram_mm:r_ram, angRad, minY_raw:minY, div:divBP};
         let tb=document.querySelector("#tableBP tbody"); tb.innerHTML="";
         lastBP.pts.forEach((p,i)=>{tb.innerHTML+=`<tr><td>${i}</td><td>${(i*360/divBP).toFixed(0)}°</td><td>${p.toFixed(1)}</td></tr>`;});
         document.getElementById('resBP').style.display='block';
@@ -182,17 +264,29 @@
         lastBP.pts.forEach((p,i)=>{ path+=` L ${i*step} ${h-(p*scY)}`; }); path+=` L 400 ${h} Z`;
         svg.innerHTML=`<rect width="400" height="160" fill="#0f172a"/><path d="${path}" stroke="#0284c7" stroke-width="2" fill="rgba(2,132,199,0.2)"/>`;
     }
-    function drawJointSvg(R,r,a){
-        const svg=document.getElementById('jointSvg'); svg.innerHTML='';
-        svg.innerHTML=`<rect width="400" height="300" fill="#0f172a"/><line x1="50" y1="150" x2="350" y2="150" stroke="#475569" stroke-width="40" opacity="0.3"/><text x="200" y="50" fill="white">ESQUEMA MONTAJE ${a}°</text>`;
+    function drawJointSvg(R, r, ang){
+        const svg = document.getElementById('jointSvg'); svg.innerHTML='';
+        const scale = 110/(R*2), scR=R*scale, scr=r*scale, cx=200, cy=200, aRad=ang*Math.PI/180;
+        let c=`<rect width="400" height="300" fill="#0f172a"/><rect x="50" y="${cy-scR}" width="300" height="${scR*2}" fill="none" stroke="#475569" stroke-width="2"/>`;
+        const vx=Math.cos(aRad), vy=-Math.sin(aRad), len=140;
+        const offX=scr*Math.sin(Math.PI/2-aRad), offY=scr*Math.cos(Math.PI/2-aRad);
+        c+=`<line x1="${cx-offX}" y1="${cy-offY-scR}" x2="${cx-offX+len*vx}" y2="${cy-offY-scR+len*vy}" stroke="#38bdf8" stroke-width="2"/>`;
+        c+=`<line x1="${cx+offX}" y1="${cy+offY-scR}" x2="${cx+offX+len*vx}" y2="${cy+offY-scR+len*vy}" stroke="#38bdf8" stroke-width="2"/>`;
+        svg.innerHTML=c;
     }
 
-    // --- PDF ---
     function getPointAt(x, pts) {
-        for(let i=0; i<pts.length-1; i++) { if(pts[i].x <= x && pts[i+1].x >= x) { let r = (x - pts[i].x) / (pts[i+1].x - pts[i].x); return pts[i].y + (pts[i+1].y - pts[i].y) * r; } }
+        for(let i=0; i<pts.length-1; i++) {
+            if(pts[i].x <= x && pts[i+1].x >= x) {
+                let r = (x - pts[i].x) / (pts[i+1].x - pts[i].x);
+                return pts[i].y + (pts[i+1].y - pts[i].y) * r;
+            }
+        }
         return pts[pts.length-1].y;
     }
+
     function pdfMultiPaginado(){
+        if(!lastBP.pts.length) return;
         document.getElementById('loading-overlay').style.display='flex';
         setTimeout(()=>{
             const { jsPDF } = window.jspdf; const doc = new jsPDF({orientation:'l', unit:'mm', format:exportFormat});
@@ -204,8 +298,10 @@
             let pW=(exportFormat==='a3'?420:297)-40, nP=Math.ceil(lastBP.per/pW), yBase=180, mX=20;
             for(let p=0; p<nP; p++){
                 if(p>0) doc.addPage();
+                doc.text(`CORTE TIJERAS 1:1 - PÁG ${p+1}/${nP}`, mX, 15);
                 let startX=p*pW, currentW=Math.min(pW, lastBP.per-startX);
-                doc.setLineWidth(1.0); doc.line(mX, yBase, mX+currentW, yBase);
+                doc.setDrawColor(0); doc.setLineWidth(1.0);
+                doc.line(mX, yBase, mX+currentW, yBase);
                 doc.line(mX, yBase, mX, yBase-getPointAt(startX, hd));
                 doc.line(mX+currentW, yBase, mX+currentW, yBase-getPointAt(startX+currentW, hd));
                 for(let i=0; i<hd.length-1; i++){
@@ -214,73 +310,103 @@
                         doc.line((x1-startX)+mX, yBase-getPointAt(x1, hd), (x2-startX)+mX, yBase-getPointAt(x2, hd));
                     }
                 }
-                doc.setLineWidth(0.2); let st = lastBP.per/lastBP.div;
+                doc.setLineWidth(0.2); doc.setDrawColor(150);
+                let st = lastBP.per/lastBP.div;
                 for(let d=0; d<=lastBP.div; d++){
-                    let px = d*st; if(px>=startX && px<=startX+currentW){ let xF=(px-startX)+mX; doc.line(xF, yBase, xF, yBase-getPointAt(px, hd)); }
+                    let px = d*st;
+                    if(px>=startX && px<=startX+currentW){
+                        let xF = (px-startX)+mX;
+                        doc.line(xF, yBase, xF, yBase-getPointAt(px, hd));
+                        doc.setFontSize(6); doc.text(`${(d*(360/lastBP.div)).toFixed(0)}°`, xF-1, yBase+3);
+                    }
                 }
             }
             doc.save("Plantilla_Corte.pdf"); document.getElementById('loading-overlay').style.display='none';
         },1000);
     }
 
+    // --- INFORME PDF COMPLETO ---
     async function pdfInforme(){
-        const { jsPDF } = window.jspdf; const scrollEl = document.getElementById('main-scroll'); const captureArea = document.getElementById('capture-area');
+        const { jsPDF } = window.jspdf;
+        const scrollEl = document.getElementById('main-scroll');
+        const captureArea = document.getElementById('capture-area');
         document.getElementById('loading-overlay').style.display='flex';
+        document.getElementById('loading-text').innerText = "CAPTURANDO INFORME...";
+        const isBP = document.getElementById('tab-bocapez').classList.contains('active');
+        const originalStyle = scrollEl.style.cssText;
         scrollEl.classList.add('pdf-exporting');
         const hideIds = ['nav-ignore', 'form-ignore', 'btns-ignore', 'form-by-ignore', 'btn-inf-by'];
         hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = 'none'; });
+
         setTimeout(async () => {
-            const canvas = await html2canvas(captureArea, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height*210)/canvas.width);
-            pdf.save(`Informe_Xurxo.pdf`);
-            scrollEl.classList.remove('pdf-exporting');
-            hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = (id === 'nav-ignore') ? 'grid' : 'block'; });
-            document.getElementById('loading-overlay').style.display='none';
+            try {
+                const canvas = await html2canvas(captureArea, { scale: 2, useCORS: true, backgroundColor: "#ffffff", scrollY: -window.scrollY });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfW = 210, pdfH = (canvas.height * pdfW) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
+                pdf.save(`Informe_Xurxo.pdf`);
+            } catch (err) { showMsg("Error PDF"); } finally {
+                scrollEl.classList.remove('pdf-exporting'); scrollEl.style.cssText = originalStyle;
+                hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = (id === 'nav-ignore') ? 'grid' : 'block'; });
+                document.getElementById('loading-overlay').style.display='none';
+            }
         }, 1000);
     }
 
-    // --- BAYONETA ---
+    // --- BAYONETAS ---
     function toggleRoll(){const c=document.getElementById('checkRolling').checked;document.getElementById('groupRoll').style.display=c?'block':'none';document.getElementById('byRoll').value='';}
     function calcBayonetaPro(){
-        const r=parseFloat(document.getElementById('byRun').value), s=parseFloat(document.getElementById('bySet').value), ro=parseFloat(document.getElementById('byRoll').value || 0);
-        let effS=Math.sqrt(s*s+ro*ro), rad=(coType==='LR')?114.3*1.5:(coType==='SR'?114.3:parseFloat(document.getElementById('byRadVal').value || 0));
-        const travel=Math.sqrt(r*r+effS*effS), angR=Math.atan(effS/r), ded=rad*Math.tan(angR/2)*2, cut=travel-ded;
+        const run=parseFloat(document.getElementById('byRun').value), set=parseFloat(document.getElementById('bySet').value), isR=document.getElementById('checkRolling').checked, roll=parseFloat(document.getElementById('byRoll').value || 0);
+        let effS=Math.sqrt(set*set+roll*roll);
+        let dB=114.3; // 4" default
+        let rad=(coType==='LR')?dB*1.5:(coType==='SR'?dB:parseFloat(document.getElementById('byRadVal').value));
+        const travel=Math.sqrt(run*run+effS*effS), angR=Math.atan(effS/run), ded=rad*Math.tan(angR/2)*2, cut=travel-ded;
         document.getElementById('resByPro').style.display='block';
         document.getElementById('outByAng').innerText=(angR*180/Math.PI).toFixed(1)+"°";
         document.getElementById('outByTrav').innerText=travel.toFixed(1) + " mm";
-        document.getElementById('outByCut').innerText=cut.toFixed(1) + " mm";
-        drawBayonetaIso(r,s,ro);
+        document.getElementById('outByCut').innerText=cut<0?"IMP":cut.toFixed(1) + " mm";
+        drawBayonetaIso(run,set,roll,cut);
     }
 
-    // --- EL NUEVO DIBUJO LIMPIO ---
-    function drawBayonetaIso(r, s, ro) {
+    // --- MOTOR ISOMÉTRICO SIMPLIFICADO (SOLUCIÓN AL "COSA RARA") ---
+    function drawBayonetaIso(r, s, ro, cu) {
         const svg = document.getElementById('bySvg'); svg.innerHTML = '';
         function tI(p) { const a = 30 * Math.PI / 180; return { x: (p.x - p.z) * Math.cos(a), y: (p.x + p.z) * Math.sin(a) - p.y }; }
-        const s0 = tI({x:0,y:0,z:0}), sr = tI({x:r,y:0,z:0}), sc = tI({x:r,y:0,z:ro}), se = tI({x:r,y:s,z:ro});
+        const p0 = { x: 0, y: 0, z: 0 }, pR = { x: r, y: 0, z: 0 }, pC = { x: r, y: 0, z: ro }, pE = { x: r, y: s, z: ro };
+        const s0 = tI(p0), sr = tI(pR), sc = tI(pC), se = tI(pE);
         const pts = [s0, sr, sc, se];
         const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x));
         const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
-        const pad = 120;
-        svg.setAttribute("viewBox", `${minX - pad} ${minY - pad} ${maxX - minX + pad * 2} ${maxY - minY + pad * 2}`);
+        const w = maxX - minX, h = maxY - minY, pad = 120;
+        svg.setAttribute("viewBox", `${minX - pad} ${minY - pad} ${w + pad * 2} ${h + pad * 2}`);
 
-        let c = `<defs><marker id="ar" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/></marker></defs>`;
-        // Caja de referencia (ejes)
-        c += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,5"/>`;
-        // Tubería diagonal real (DE PUNTO A PUNTO)
-        c += `<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="#facc15" stroke-width="24" stroke-linecap="round"/>`;
-        c += `<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="#000" stroke-width="1" stroke-dasharray="10,5,2,5"/>`;
+        let content = `<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>`;
+        // Líneas de referencia
+        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="5,5"/>`;
+        // Tubería sólida
+        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#facc15" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>`;
+        // Línea de centro (Eje)
+        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#000" stroke-width="1.5" stroke-dasharray="15,5,2,5"/>`;
         
-        // Cotas de medida
-        function dm(p1, p2, val, color, off) {
-            return `<line x1="${p1.x+off.x}" y1="${p1.y+off.y}" x2="${p2.x+off.x}" y2="${p2.y+off.y}" stroke="${color}" stroke-width="2" marker-end="url(#ar)"/><text x="${(p1.x+p2.x)/2 + off.x}" y="${(p1.y+p2.y)/2 + off.y - 10}" fill="${color}" font-weight="bold" text-anchor="middle">${val} mm</text>`;
+        // Etiquetas de Cotas (RUN, ROLL, SET)
+        function label(p1, p2, text, color, offset) {
+            const mx = (p1.x+p2.x)/2 + offset.x, my = (p1.y+p2.y)/2 + offset.y;
+            return `<line x1="${p1.x+offset.x}" y1="${p1.y+offset.y}" x2="${p2.x+offset.x}" y2="${p2.y+offset.y}" stroke="${color}" stroke-width="2" marker-end="url(#arr)"/><text x="${mx}" y="${my-10}" fill="${color}" font-size="14" font-weight="bold" text-anchor="middle">${text}</text>`;
         }
-        c += dm(s0, sr, r, "#3b82f6", {x:0, y:50});
-        if(ro!=0) c += dm(sr, sc, ro, "#10b981", {x:50, y:0});
-        c += dm(sc, se, s, "#ef4444", {x:-50, y:0});
+        content += label(s0, sr, `RUN: ${r}`, "#3b82f6", {x:0, y:40});
+        if(ro != 0) content += label(sr, sc, `ROLL: ${ro}`, "#10b981", {x:40, y:0});
+        content += label(sc, se, `SET: ${s}`, "#ef4444", {x:-40, y:0});
         
-        svg.innerHTML = c;
+        svg.innerHTML = content;
     }
+
+    const dbB={"150":{"4":{od:228.6,bc:190.5}}};
+    function getBrida(){let s=document.getElementById('brSize').value,d=dbB["150"][s];if(d){document.getElementById('brRes').style.display='block';document.getElementById('brOD').innerText=d.od;document.getElementById('brBC').innerText=d.bc;}}
+    function calcPeso(){document.getElementById('resP').style.display='block';document.getElementById('resPVal').innerText="Aprox 16 Kg/m";}
+    function calcCo(){document.getElementById('resCo').style.display='block';document.getElementById('resCoVal').innerText="Avance: 152 mm";}
+    const sl=[{c:'#7c3aed',n:'VIOLETA',t:1},{c:'#16a34a',n:'VERDE',t:2},{c:'#facc15',n:'AMARILLO',t:3}];
+    document.getElementById('slingList').innerHTML=sl.map(s=>`<div style="display:flex; gap:10px; margin-bottom:5px;"><div style="width:20px;height:20px;background:${s.c}"></div>${s.n} - ${s.t}T</div>`).join('');
 </script>
 </body>
 </html>
