@@ -307,6 +307,60 @@
     <div class="main-content">
         
         <!-- PESTAÑA BOCA PEZ -->
+        // ===============================
+// MOTOR GEOMÉTRICO DE INJERTO
+// ===============================
+function motorInjerto({
+  diamPrincipal,
+  diamRamal,
+  anguloDeg,
+  divisiones = 16,
+  espesor = 0,
+  usarFibraNeutra = false
+}) {
+
+  const R_cab_ext = diamPrincipal / 2;
+  const r_ram_ext = diamRamal / 2;
+
+  const k = 0.5; // fibra neutra clásica
+
+  const R_cab = usarFibraNeutra ? (R_cab_ext - k * espesor) : R_cab_ext;
+  const r_ram = usarFibraNeutra ? (r_ram_ext - k * espesor) : r_ram_ext;
+
+  const alpha = anguloDeg * Math.PI / 180;
+
+  const resultados = [];
+
+  for (let i = 0; i <= divisiones; i++) {
+
+    const phi = 2 * Math.PI * i / divisiones;
+
+    const term = R_cab * R_cab - Math.pow(r_ram * Math.sin(phi), 2);
+
+    if (term < 0) continue;
+
+    const y =
+      (Math.sqrt(term) / Math.sin(alpha)) -
+      (r_ram * Math.cos(phi) / Math.tan(alpha));
+
+    const xDesarrollo = r_ram * phi;
+
+    resultados.push({
+      indice: i,
+      phiRad: phi,
+      phiDeg: phi * 180 / Math.PI,
+      xDesarrollo: xDesarrollo,
+      altura: y
+    });
+  }
+
+  return {
+    radioPrincipal: R_cab,
+    radioRamal: r_ram,
+    anguloRad: alpha,
+    puntos: resultados
+  };
+}
         <div id="tab-bocapez" class="section active">
             <h2>Injerto Boca de Pez (Ángulo Variable)</h2>
             <div class="card" id="form-ignore">
@@ -678,5 +732,6 @@
 </script>
 </body>
 </html> 
+
 
 
