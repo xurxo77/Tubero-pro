@@ -815,8 +815,99 @@
     let sHtml = '';
     slings.forEach(s => { sHtml += `<div class="sling-row"><div style="width:35px;height:35px;border-radius:10px;background:${s.c}"></div><div style="flex:1;font-weight:800;font-size:0.7rem;color:#475569;">${s.n}</div><div style="font-size:1.3rem;font-weight:900;color:#1e293b;">${s.t} T</div></div>`; });
     document.getElementById('slingList').innerHTML = sHtml;
+    function drawBayonetaSvg(run, set, cut, ang) {
+        const svg = document.getElementById('bySvg');
+        // Limpiar lienzo
+        svg.innerHTML = '';
+
+        // 1. Configuración de Escala
+        // Margen interno para que no se corten las cotas
+        const margin = 40; 
+        const w = 300, h = 150;
+        
+        // Calcular límites del dibujo
+        const maxDim = Math.max(run, set);
+        if(maxDim === 0) return; // Evitar error div/0
+        
+        // Escala: Ajustar el dibujo al tamaño del SVG (respetando márgenes)
+        // Invertimos Y porque en SVG el 0 está arriba
+        const sc = (Math.min(w, h) - margin * 2) / maxDim; 
+        
+        // Puntos Clave (Coordenadas SVG)
+        const x0 = margin;          // Origen X (Izquierda)
+        const y0 = h - margin;      // Origen Y (Abajo)
+        const x1 = x0 + (run * sc); // Final X
+        const y1 = y0 - (set * sc); // Final Y (Arriba)
+
+        // Definiciones (Flechas de cota)
+        let defs = `<defs>
+            <marker id="arrowHead" markerWidth="6" markerHeight="6" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L5,3 z" fill="#64748b" />
+            </marker>
+            <marker id="arrowStart" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M5,0 L5,6 L0,3 z" fill="#64748b" />
+            </marker>
+        </defs>`;
+        svg.innerHTML += defs;
+
+        // --- 2. DIBUJO TÉCNICO ---
+
+        // A. Líneas de Eje (Centerlines) - Fantasma
+        // Eje Horizontal Base
+        svg.innerHTML += `<line x1="${x0-20}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="#94a3b8" stroke-dasharray="4,2" stroke-width="1"/>`;
+        // Eje Vertical Referencia
+        svg.innerHTML += `<line x1="${x1}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#94a3b8" stroke-dasharray="4,2" stroke-width="1"/>`;
+        // Eje Diagonal (Travel)
+        svg.innerHTML += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#cbd5e1" stroke-dasharray="2" stroke-width="1"/>`;
+
+        // B. Tubería Real (Gruesa)
+        // Usamos un 'path' para dibujar Codo -> Tubo -> Codo
+        // Radio visual proporcional (fijo para estética o calculado)
+        const rVis = 20; 
+        const pipeW = 6; // Grosor del tubo visual
+        
+        // Vectores para los codos (Matemática visual simplificada)
+        // El tubo sale horizontal, curva hacia la diagonal, va recto, curva a horizontal
+        // Para simplificar en SVG: Dibujamos líneas gruesas con extremos redondeados o path complejo.
+        // Aquí usaremos línea simple muy gruesa para representar el tubo + codos como vértices redondeados
+        
+        // Color según estado (Rojo si imposible, Amarillo si bien)
+        const pipeColor = (cut < 0) ? "#ef4444" : "#facc15";
+        
+        svg.innerHTML += `<path d="M ${x0-20} ${y0} L ${x0} ${y0} L ${x1} ${y1} L ${x1+20} ${y1}" 
+            fill="none" stroke="${pipeColor}" stroke-width="${pipeW}" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+        // C. Cotas (Dimensiones)
+        // Cota Avance (Abajo)
+        svg.innerHTML += `<line x1="${x0}" y1="${y0+15}" x2="${x1}" y2="${y0+15}" stroke="#64748b" stroke-width="1" marker-end="url(#arrowHead)" marker-start="url(#arrowStart)"/>`;
+        svg.innerHTML += `<line x1="${x0}" y1="${y0+2}" x2="${x0}" y2="${y0+20}" stroke="#64748b" stroke-width="0.5"/>`; // Límite izq
+        svg.innerHTML += `<line x1="${x1}" y1="${y0+2}" x2="${x1}" y2="${y0+20}" stroke="#64748b" stroke-width="0.5"/>`; // Límite der
+        svg.innerHTML += `<text x="${(x0+x1)/2}" y="${y0+28}" fill="#475569" font-size="9" text-anchor="middle" font-weight="bold">AVANCE: ${run}</text>`;
+
+        // Cota Desviación (Derecha)
+        svg.innerHTML += `<line x1="${x1+15}" y1="${y0}" x2="${x1+15}" y2="${y1}" stroke="#64748b" stroke-width="1" marker-end="url(#arrowHead)" marker-start="url(#arrowStart)"/>`;
+        svg.innerHTML += `<line x1="${x1+2}" y1="${y0}" x2="${x1+20}" y2="${y0}" stroke="#64748b" stroke-width="0.5"/>`; // Límite inf
+        svg.innerHTML += `<line x1="${x1+2}" y1="${y1}" x2="${x1+20}" y2="${y1}" stroke="#64748b" stroke-width="0.5"/>`; // Límite sup
+        // Texto rotado para Set
+        svg.innerHTML += `<text x="${x1+25}" y="${(y0+y1)/2}" fill="#475569" font-size="9" text-anchor="middle" font-weight="bold" transform="rotate(-90, ${x1+25}, ${(y0+y1)/2})">SET: ${set}</text>`;
+
+        // D. Ángulo
+        if (run > 0 && set > 0) {
+            // Pequeño arco para el ángulo
+            const arcR = 30;
+            // Solo dibujamos el texto por simplicidad visual
+            svg.innerHTML += `<text x="${x0 + arcR + 5}" y="${y0 - 5}" fill="#2563eb" font-size="10" font-weight="bold">${ang.toFixed(1)}°</text>`;
+        }
+
+        // E. Etiqueta de Corte (Sobre el tubo diagonal)
+        if (cut > 0) {
+            svg.innerHTML += `<rect x="${(x0+x1)/2 - 25}" y="${(y0+y1)/2 - 8}" width="50" height="16" rx="4" fill="#0f172a" opacity="0.8"/>`;
+            svg.innerHTML += `<text x="${(x0+x1)/2}" y="${(y0+y1)/2 + 4}" fill="#facc15" font-size="10" text-anchor="middle" font-weight="bold">L=${cut.toFixed(0)}</text>`;
+        }
+    }
 </script>
 </body>
 </html> 
+
 
 
