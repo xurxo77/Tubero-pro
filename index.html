@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v23.0 (CAD 3D)</title>
+    <title>XURXO - Tubero Pro Elite v24.0 (Master 3D)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -278,7 +278,7 @@
     <div class="splash-logo">TUBERO PRO</div>
     <div class="splash-divider"></div>
     <div class="splash-name">OFICIAL: XURXO</div>
-    <div class="splash-version">BUILD 2024 - v23.0 (CAD 3D)</div>
+    <div class="splash-version">BUILD 2024 - v24.0 (MASTER 3D)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
@@ -295,7 +295,7 @@
     <header>
         <h1>TUBERO PRO</h1>
         <div class="owner-badge">OFICIAL: XURXO</div>
-        <div class="subtitle">EDICIÓN ELITE v23.0</div>
+        <div class="subtitle">EDICIÓN ELITE v24.0</div>
     </header>
 
     <nav class="nav-tabs" id="nav-ignore">
@@ -444,8 +444,8 @@
 
             <div id="resByPro" style="display:none;">
                 <div class="canvas-wrap" style="padding:10px;">
-                    <div class="canvas-label">Vista 3D Isométrica (CAD)</div>
-                    <svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:300px; box-shadow:inset 0 0 20px #0f172a;"></svg>
+                    <div class="canvas-label">Vista 3D Isométrica (CAD + Estructura)</div>
+                    <svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:320px; box-shadow:inset 0 0 20px #0f172a;"></svg>
                 </div>
 
                 <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
@@ -824,7 +824,7 @@
 
 
     // ==========================================
-    // --- 3. MÓDULO BAYONETA (ISOMÉTRICO CAD) ---
+    // --- 3. MÓDULO BAYONETA (ISOMÉTRICO MASTER 3D) ---
     // ==========================================
     let byType = 'LR'; 
     let byUnitDia = 'in';
@@ -900,16 +900,15 @@
         drawBayonetaIso(run, set, rVal, cutLength, angleDeg, effectiveSet);
     }
 
-    // --- MOTOR ISOMÉTRICO 3D MEJORADO (SOLIDOS) ---
+    // --- MOTOR ISOMÉTRICO 3D MASTER (SOLID + WIREFRAME) ---
     function drawBayonetaIso(run, set, roll, cut, ang, effSet) {
         const svg = document.getElementById('bySvg');
         svg.innerHTML = ''; 
 
         // Definir coordenadas 3D (x=Run, y=Set, z=Roll)
-        // Ejes: X=Avance(Azul), Y=Altura(Rojo), Z=Desplazamiento(Verde)
         const p0 = {x:0, y:0, z:0};
         const pRun = {x:run, y:0, z:0};
-        const pCorner = {x:run, y:0, z:roll}; 
+        const pCorner = {x:run, y:0, z:roll}; // La esquina invisible en el suelo
         const pEnd = {x:run, y:set, z:roll};  
 
         // Proyección Isométrica
@@ -936,85 +935,80 @@
         const w = maxX - minX;
         const h = maxY - minY;
         const pad = Math.max(w, h) * 0.4 + 50; 
-        const strokeW = Math.max(w, h) * 0.015 + 2; // Grosor líneas tubería
+        const strokeW = Math.max(w, h) * 0.015 + 2; 
 
         svg.setAttribute("viewBox", `${minX - pad} ${minY - pad} ${w + pad*2} ${h + pad*2}`);
 
-        // Defs
         let defs = `<defs>
-            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-                <feOffset dx="2" dy="4" result="offsetblur"/>
-                <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
-                <feMerge><feMergeNode in="offsetblur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
+            <marker id="arrowHead" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,4 L4,2 z" fill="#94a3b8" />
+            </marker>
         </defs>`;
         svg.innerHTML += defs;
 
-        // 1. SOMBRA DE SUELO (TRIÁNGULO PROYECCIÓN)
-        // Conecta P0 -> PRun -> PCorner -> P0
-        const floorPath = `M ${s0.x} ${s0.y} L ${sRun.x} ${sRun.y} L ${sCorner.x} ${sCorner.y} Z`;
-        svg.innerHTML += `<path d="${floorPath}" fill="rgba(255,255,255,0.05)" stroke="none"/>`;
+        // --- DIBUJADO DE LA CAJA (WIREFRAME) ---
+        // Esto es lo que faltaba para que fuera intuitivo. La "caja de cristal"
+        const dash = strokeW * 1.5;
+        const wireColor = "#475569";
+        const wireOpacity = "0.5";
 
-        // 2. LÍNEAS DE COTA (COLOREADAS)
-        const dash = strokeW * 2;
-        
-        // RUN (AZUL) - Suelo
-        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sRun.x}" y2="${sRun.y}" stroke="#2563eb" stroke-width="${strokeW/2}" stroke-dasharray="${dash}"/>`;
-        // ROLL (VERDE) - Suelo
-        svg.innerHTML += `<line x1="${sRun.x}" y1="${sRun.y}" x2="${sCorner.x}" y2="${sCorner.y}" stroke="#059669" stroke-width="${strokeW/2}" stroke-dasharray="${dash}"/>`;
-        // SET (ROJO) - Vertical
-        svg.innerHTML += `<line x1="${sCorner.x}" y1="${sCorner.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="#dc2626" stroke-width="${strokeW/2}" stroke-dasharray="${dash}"/>`;
+        // 1. Triángulo de suelo (Run -> Roll)
+        // L1: Run (Eje X)
+        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sRun.x}" y2="${sRun.y}" stroke="${wireColor}" stroke-width="1" stroke-dasharray="${dash}" opacity="${wireOpacity}"/>`;
+        // L2: Roll (Eje Z)
+        svg.innerHTML += `<line x1="${sRun.x}" y1="${sRun.y}" x2="${sCorner.x}" y2="${sCorner.y}" stroke="${wireColor}" stroke-width="1" stroke-dasharray="${dash}" opacity="${wireOpacity}"/>`;
+        // Diagonal suelo (s0 a sCorner) - Opcional, ayuda a ver la base
+        if(roll > 0) {
+             svg.innerHTML += `<path d="M ${s0.x} ${s0.y} L ${sRun.x} ${sRun.y} L ${sCorner.x} ${sCorner.y} Z" fill="rgba(255,255,255,0.03)" stroke="none"/>`;
+        }
 
-        // 3. TUBERÍA SÓLIDA (AMARILLA / ORO)
+        // 2. Línea Vertical (Set)
+        svg.innerHTML += `<line x1="${sCorner.x}" y1="${sCorner.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="${wireColor}" stroke-width="1" stroke-dasharray="${dash}" opacity="${wireOpacity}"/>`;
+
+        // 3. TUBERÍA SÓLIDA
         const pipeColor = (cut < 0) ? "#ef4444" : "#facc15";
         const pipeStroke = strokeW * 3.5;
         
-        // Sombra de la tubería
+        // Sombra realista tubo
         svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="black" stroke-width="${pipeStroke}" stroke-linecap="round" opacity="0.3" transform="translate(4,4)"/>`;
-        
-        // Tubería principal
+        // Cuerpo tubo
         svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="${pipeColor}" stroke-width="${pipeStroke}" stroke-linecap="round"/>`;
-        
-        // Brillo tubería (Efecto cilíndrico)
+        // Brillo tubo
         svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="white" stroke-width="${pipeStroke/4}" stroke-linecap="round" opacity="0.4" transform="translate(-1,-2)"/>`;
 
-        // Conexiones (Círculos extremos)
-        const fitR = pipeStroke * 0.8;
-        svg.innerHTML += `<circle cx="${s0.x}" cy="${s0.y}" r="${fitR}" fill="#475569" stroke="white" stroke-width="1"/>`;
-        svg.innerHTML += `<circle cx="${sEnd.x}" cy="${sEnd.y}" r="${fitR}" fill="#475569" stroke="white" stroke-width="1"/>`;
+        // Conectores (Esferas/Codos)
+        const fitR = pipeStroke * 0.7;
+        svg.innerHTML += `<circle cx="${s0.x}" cy="${s0.y}" r="${fitR}" fill="#334155" stroke="#94a3b8" stroke-width="1"/>`;
+        svg.innerHTML += `<circle cx="${sEnd.x}" cy="${sEnd.y}" r="${fitR}" fill="#334155" stroke="#94a3b8" stroke-width="1"/>`;
 
-
-        // 4. ETIQUETAS DE TEXTO (CON FONDO)
+        // 4. COTAS CLARAS (COLORES ESPECÍFICOS)
         const txtSize = strokeW * 3.5;
         
-        function drawLabel(x, y, text, color, anchor="middle") {
-            // Fondo para el texto
-            const w = text.length * txtSize * 0.6;
-            const h = txtSize * 1.2;
-            let bgX = x - w/2; 
-            if(anchor==="start") bgX = x; 
-            if(anchor==="end") bgX = x - w;
-
-            svg.innerHTML += `<rect x="${bgX-2}" y="${y - h/2 + 2}" width="${w+4}" height="${h}" fill="rgba(15,23,42,0.8)" rx="4"/>`;
-            svg.innerHTML += `<text x="${x}" y="${y + txtSize/3}" fill="${color}" font-size="${txtSize}" text-anchor="${anchor}" font-weight="bold" font-family="monospace">${text}</text>`;
+        function drawDim(x1, y1, x2, y2, color, label) {
+            // Linea
+            svg.innerHTML += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${strokeW/1.5}"/>`;
+            // Texto
+            const midX = (x1+x2)/2; 
+            const midY = (y1+y2)/2;
+            svg.innerHTML += `<rect x="${midX - txtSize*2}" y="${midY - txtSize/1.5}" width="${txtSize*4}" height="${txtSize*1.2}" fill="rgba(15,23,42,0.7)" rx="2"/>`;
+            svg.innerHTML += `<text x="${midX}" y="${midY + txtSize/3}" fill="${color}" font-size="${txtSize}" text-anchor="middle" font-weight="bold" font-family="monospace">${label}</text>`;
         }
 
-        // Run Label
-        drawLabel((s0.x + sRun.x)/2, (s0.y + sRun.y)/2 + txtSize*1.5, `RUN: ${run}`, "#60a5fa");
+        // Cota Run (Azul) - Offset un poco
+        drawDim(s0.x, s0.y + pipeStroke, sRun.x, sRun.y + pipeStroke, "#60a5fa", `R:${run}`);
         
-        // Roll Label
+        // Cota Roll (Verde)
         if(roll > 0) {
-            drawLabel((sRun.x + sCorner.x)/2 + txtSize, (sRun.y + sCorner.y)/2 + txtSize, `ROLL: ${roll}`, "#34d399", "start");
+            drawDim(sRun.x + pipeStroke/2, sRun.y, sCorner.x + pipeStroke/2, sCorner.y, "#34d399", `D:${roll}`);
         }
 
-        // Set Label
-        drawLabel(sEnd.x + txtSize, (sCorner.y + sEnd.y)/2, `SET: ${set}`, "#f87171", "start");
+        // Cota Set (Rojo)
+        drawDim(sCorner.x + pipeStroke, sCorner.y, sEnd.x + pipeStroke, sEnd.y, "#f87171", `H:${set}`);
 
-        // Travel Label (Central)
+        // Etiqueta Corte Central
         if(cut > 0) {
-            svg.innerHTML += `<rect x="${(s0.x + sEnd.x)/2 - txtSize*3}" y="${(s0.y + sEnd.y)/2 - txtSize*2.5}" width="${txtSize*6}" height="${txtSize*1.5}" fill="#facc15" stroke="black" rx="4"/>`;
-            svg.innerHTML += `<text x="${(s0.x + sEnd.x)/2}" y="${(s0.y + sEnd.y)/2 - txtSize*1.5}" fill="#000" font-size="${txtSize}" font-weight="900" text-anchor="middle" dominant-baseline="middle">CORTE: ${cut.toFixed(0)}</text>`;
+            svg.innerHTML += `<rect x="${(s0.x + sEnd.x)/2 - txtSize*3}" y="${(s0.y + sEnd.y)/2 - txtSize*3}" width="${txtSize*6}" height="${txtSize*1.5}" fill="#facc15" stroke="black" rx="4"/>`;
+            svg.innerHTML += `<text x="${(s0.x + sEnd.x)/2}" y="${(s0.y + sEnd.y)/2 - txtSize*2}" fill="#000" font-size="${txtSize}" font-weight="900" text-anchor="middle" dominant-baseline="middle">CORTE: ${cut.toFixed(0)}</text>`;
         }
     }
     
