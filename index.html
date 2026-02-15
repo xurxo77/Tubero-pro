@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v20.0</title>
+    <title>XURXO - Tubero Pro Elite v21.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -265,6 +265,11 @@
         .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 600; }
         
         .sling-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; background: white; padding: 12px; border-radius: 12px; }
+        
+        /* Checkbox estilo switch */
+        .switch-wrap { display: flex; align-items: center; justify-content: space-between; background: #e0f2fe; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #bae6fd; cursor: pointer; }
+        .switch-label { font-weight: 700; color: #0369a1; font-size: 0.85rem; text-transform: uppercase; }
+        .switch-checkbox { width: 20px; height: 20px; accent-color: var(--blue-pro); }
     </style>
 </head>
 <body>
@@ -273,7 +278,7 @@
     <div class="splash-logo">TUBERO PRO</div>
     <div class="splash-divider"></div>
     <div class="splash-name">OFICIAL: XURXO</div>
-    <div class="splash-version">BUILD 2024 - v20.0 INDUSTRIAL</div>
+    <div class="splash-version">BUILD 2024 - v21.0 INDUSTRIAL</div>
 </div>
 
 <div id="ui-message">Aviso</div>
@@ -290,7 +295,7 @@
     <header>
         <h1>TUBERO PRO</h1>
         <div class="owner-badge">OFICIAL: XURXO</div>
-        <div class="subtitle">EDICIÓN ELITE v20.0</div>
+        <div class="subtitle">EDICIÓN ELITE v21.0</div>
     </header>
 
     <nav class="nav-tabs" id="nav-ignore">
@@ -379,6 +384,12 @@
         <div id="tab-bayoneta" class="section">
             <h2>Cálculo de Bayonetas</h2>
             <div class="card">
+                
+                <label class="switch-wrap">
+                    <span class="switch-label">ACTIVAR GIRADA (3D / ROLLING)</span>
+                    <input type="checkbox" id="checkRolling" class="switch-checkbox" onchange="toggleRoll()">
+                </label>
+
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div class="input-group">
                         <label>Avance (Run)</label>
@@ -387,6 +398,11 @@
                     <div class="input-group">
                         <label>Altura (Set)</label> <input type="number" id="bySet" placeholder="mm">
                     </div>
+                </div>
+
+                <div class="input-group" id="groupRoll" style="display:none; background:#e0f2fe; padding:10px; border-radius:10px; border:1px solid #7dd3fc;">
+                    <label style="color:#0284c7;">Desplazamiento Lateral (Roll)</label>
+                    <input type="number" id="byRoll" placeholder="mm">
                 </div>
 
                 <div class="input-group">
@@ -703,25 +719,18 @@
                     // 1. DIBUJAR PERFILADO (CONTORNO DE RECORTE)
                     doc.setDrawColor(0); doc.setLineWidth(0.6); // Línea gruesa para cortar
 
-                    // A. Lateral Izquierdo (Vertical hacia arriba)
-                    // Buscamos altura inicial en este tramo
+                    // A. Lateral Izquierdo
                     let firstPtHeight = getInterpHeight(startX_Abs, hdPoints);
                     doc.line(margin, yBase, margin, yBase - firstPtHeight);
 
                     // B. Curva Superior (HD)
-                    // Dibujamos solo el tramo correspondiente a esta página
                     let pointsInPage = [];
-                    // Añadimos punto inicial exacto
                     pointsInPage.push({x: startX_Abs, y: firstPtHeight});
-
-                    // Añadimos puntos intermedios
                     for (let pt of hdPoints) {
                         if(pt.x > startX_Abs && pt.x < endX_Abs) {
                             pointsInPage.push(pt);
                         }
                     }
-
-                    // Añadimos punto final exacto
                     let lastPtHeight = getInterpHeight(Math.min(endX_Abs, lastBP.per), hdPoints);
                     pointsInPage.push({x: Math.min(endX_Abs, lastBP.per), y: lastPtHeight});
 
@@ -736,8 +745,7 @@
                         doc.line(x1, y1, x2, y2);
                     }
 
-                    // C. Lateral Derecho (Vertical hacia abajo)
-                    // Si es la última página, la línea va en el final del perímetro, no al final de la hoja
+                    // C. Lateral Derecho
                     let rightEdgeX = (Math.min(endX_Abs, lastBP.per) - startX_Abs) + margin;
                     let rightEdgeHeight = lastPtHeight;
                     doc.line(rightEdgeX, yBase - rightEdgeHeight, rightEdgeX, yBase);
@@ -745,18 +753,16 @@
                     // D. Base Inferior (Cierre del rectángulo)
                     doc.line(rightEdgeX, yBase, margin, yBase);
                     
-                    // Texto "RECORTAR POR LA LÍNEA"
                     doc.setFontSize(8); doc.setTextColor(150);
                     doc.text("LÍNEA DE CORTE (PERFILADO)", margin + 5, yBase + 4);
 
-                    // 2. LÍNEA DE REFERENCIA DE FAJA (Discontinua Naranja)
+                    // 2. LÍNEA DE REFERENCIA DE FAJA
                     const fajaY = yBase - lastBP.margin;
                     doc.setDrawColor(255, 140, 0); doc.setLineWidth(0.3); doc.setLineDash([3, 2], 0);
                     doc.line(margin, fajaY, rightEdgeX, fajaY);
                     doc.setTextColor(255, 140, 0);
                     doc.text(`DOBLAR/REFERENCIA (${lastBP.margin}mm)`, margin + 5, fajaY - 2);
                     
-                    // Reset estilos
                     doc.setLineDash([], 0);
 
                     // 3. Ejes verticales
@@ -779,20 +785,17 @@
         }, 1000);
     }
 
-    // Helper para interpolar altura exacta en cortes de página
     function getInterpHeight(targetX, points) {
-        // Encontrar los dos puntos más cercanos
         for(let i=0; i<points.length-1; i++) {
             if(points[i].x <= targetX && points[i+1].x >= targetX) {
                 let p1 = points[i];
                 let p2 = points[i+1];
-                // Regla de tres simple (Interpolación lineal)
                 let ratio = (targetX - p1.x) / (p2.x - p1.x);
-                if(isNaN(ratio)) ratio = 0; // Evitar div/0
+                if(isNaN(ratio)) ratio = 0; 
                 return p1.y + (p2.y - p1.y) * ratio;
             }
         }
-        return points[points.length-1].y; // Fallback final
+        return points[points.length-1].y; 
     }
 
     async function pdfInforme() {
@@ -820,7 +823,7 @@
 
 
     // ==========================================
-    // --- 3. MÓDULO BAYONETA (RESPONSIVE) ---
+    // --- 3. MÓDULO BAYONETA (RESPONSIVE + ROLLING) ---
     // ==========================================
     let byType = 'LR'; 
     let byUnitDia = 'in';
@@ -838,11 +841,28 @@
         document.getElementById('inputDiaIn').style.display = (u === 'in') ? 'block' : 'none';
         document.getElementById('inputDiaMm').style.display = (u === 'mm') ? 'block' : 'none';
     }
+    
+    function toggleRoll() {
+        const isRolling = document.getElementById('checkRolling').checked;
+        document.getElementById('groupRoll').style.display = isRolling ? 'block' : 'none';
+        document.getElementById('byRoll').value = ''; // Limpiar si se oculta
+    }
 
     function calcBayonetaPro() {
         const run = parseFloat(document.getElementById('byRun').value);
-        const set = parseFloat(document.getElementById('bySet').value);
+        let set = parseFloat(document.getElementById('bySet').value);
         
+        // --- LÓGICA ROLLING OFFSET (3D) ---
+        const isRolling = document.getElementById('checkRolling').checked;
+        const roll = parseFloat(document.getElementById('byRoll').value);
+        let effectiveSet = set; // Por defecto es igual a la Altura
+
+        if(isRolling) {
+            if(!roll) { showMsg("Introduce el Roll (Desplazamiento)"); return; }
+            // Pitágoras para sacar la diagonal del cajón (Set + Roll)
+            effectiveSet = Math.sqrt(Math.pow(set, 2) + Math.pow(roll, 2));
+        }
+
         let diameterBase = 0;
         if (byUnitDia === 'in') {
             diameterBase = parseFloat(document.getElementById('byDiaSel').value) * 25.4; 
@@ -852,8 +872,9 @@
         
         if (!run || !set || !diameterBase) { showMsg("Faltan datos"); return; }
 
-        const travel = Math.sqrt(Math.pow(run, 2) + Math.pow(set, 2));
-        const angleRad = Math.atan(set / run);
+        // Cálculos usando effectiveSet (que será la altura real o la diagonal 3D)
+        const travel = Math.sqrt(Math.pow(run, 2) + Math.pow(effectiveSet, 2));
+        const angleRad = Math.atan(effectiveSet / run);
         const angleDeg = angleRad * (180 / Math.PI);
 
         const radius = (byType === 'LR') ? (diameterBase * 1.5) : (diameterBase * 1.0);
@@ -877,10 +898,11 @@
             cutElem.style.color = "#15803d";
         }
 
-        drawBayonetaSvgResponsive(run, set, cutLength, angleDeg);
+        // Pasamos effectiveSet al dibujo para que pinte la diagonal correcta
+        drawBayonetaSvgResponsive(run, effectiveSet, cutLength, angleDeg, isRolling);
     }
 
-    function drawBayonetaSvgResponsive(run, set, cut, ang) {
+    function drawBayonetaSvgResponsive(run, set, cut, ang, isRolling) {
         const svg = document.getElementById('bySvg');
         svg.innerHTML = ''; 
 
@@ -922,11 +944,14 @@
         svg.innerHTML += `<line x1="${run}" y1="${distCota}" x2="${run}" y2="0" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
         svg.innerHTML += `<text x="${run/2}" y="${distCota + textSize}" fill="#475569" font-size="${textSize}" text-anchor="middle" font-weight="bold">AVANCE: ${run}</text>`;
 
-        // Altura
+        // Altura / Diagonal
         svg.innerHTML += `<line x1="${run + distCota}" y1="0" x2="${run + distCota}" y2="${-set}" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="1.5" marker-end="url(#arrowHead)"/>`;
         svg.innerHTML += `<line x1="${run + distCota}" y1="0" x2="${run}" y2="0" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
         svg.innerHTML += `<line x1="${run + distCota}" y1="${-set}" x2="${run}" y2="${-set}" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
-        svg.innerHTML += `<text x="${run + distCota + textSize}" y="${-set/2}" fill="#475569" font-size="${textSize}" text-anchor="middle" font-weight="bold" transform="rotate(-90, ${run + distCota + textSize}, ${-set/2})">ALTURA: ${set}</text>`;
+        
+        // Etiqueta dinámica
+        const labelText = isRolling ? `DIAG. (SET+ROLL): ${set.toFixed(1)}` : `ALTURA: ${set}`;
+        svg.innerHTML += `<text x="${run + distCota + textSize}" y="${-set/2}" fill="#475569" font-size="${textSize}" text-anchor="middle" font-weight="bold" transform="rotate(-90, ${run + distCota + textSize}, ${-set/2})">${labelText}</text>`;
 
         if (run > 0 && set > 0) {
             svg.innerHTML += `<text x="${textSize*2}" y="${-textSize/2}" fill="#2563eb" font-size="${textSize}" font-weight="bold">${ang.toFixed(1)}°</text>`;
