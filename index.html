@@ -4,19 +4,20 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v26.0 (Restored)</title>
+    <title>XURXO - Tubero Pro Elite v24.0 (Master 3D)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            /* COLORES ORIGINALES RESTAURADOS */
-            --bg-body: #f1f5f9;      /* Fondo claro */
-            --primary: #1e293b;      /* Texto oscuro */
-            --card-bg: #ffffff;      /* Tarjetas blancas */
-            --accent: #f59e0b;       /* Naranja Xurxo */
-            --blue-pro: #0284c7;     /* Azul Pro */
-            --header-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            --text-muted: #64748b;
+            --bg-body: #0f172a;
+            --primary: #1e293b;
+            --accent: #f59e0b;
+            --blue-pro: #0284c7;
+            --text-main: #334155;
+            --text-light: #94a3b8;
+            --workshop-green: #059669;
+            --pdf-red: #ef4444;
+            --error-red: #b91c1c;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
@@ -24,149 +25,277 @@
         body {
             font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-body);
-            color: var(--primary);
+            color: var(--text-main);
             padding: 10px;
             display: flex;
             justify-content: center;
             overflow-x: hidden;
         }
 
-        /* --- PANTALLA DE INICIO --- */
+        /* --- PANTALLA DE INICIO (SPLASH SCREEN) --- */
         #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--header-bg);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000; transition: opacity 0.8s ease;
-            color: white; text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease, visibility 0.8s;
+            color: white;
+            text-align: center;
         }
-        .splash-logo { font-size: 3rem; font-weight: 900; letter-spacing: 5px; color: var(--accent); margin-bottom: 10px; }
-        .splash-name { font-size: 1.2rem; font-weight: 300; letter-spacing: 3px; text-transform: uppercase; }
 
-        /* --- CONTENEDOR PRINCIPAL --- */
+        .splash-logo {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: 5px;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+            margin-bottom: 10px;
+            animation: fadeInDown 1s ease forwards;
+            opacity: 0;
+        }
+
+        .splash-divider {
+            width: 0;
+            height: 4px;
+            background: var(--accent);
+            margin-bottom: 20px;
+            animation: growLine 1.2s ease 0.5s forwards;
+        }
+
+        .splash-name {
+            font-size: 1.2rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: fadeInUp 1s ease 1s forwards;
+            opacity: 0;
+        }
+
+        .splash-version {
+            margin-top: 30px;
+            font-family: monospace;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            animation: fadeIn 1s ease 1.5s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @keyframes growLine {
+            from { width: 0; }
+            to { width: 150px; }
+        }
+
+        /* --- INTERFAZ PRINCIPAL --- */
         .app-container {
-            width: 100%; max-width: 500px;
-            background: #e2e8f0;
-            min-height: 98vh; border-radius: 20px;
-            overflow: hidden; display: flex; flex-direction: column;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2); position: relative;
+            width: 100%;
+            max-width: 500px;
+            background: #f1f5f9;
+            min-height: 98vh;
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            position: relative;
         }
 
         header {
-            background: var(--header-bg);
-            color: white; padding: 25px 15px; text-align: center;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 25px 15px;
+            text-align: center;
             border-bottom: 4px solid var(--accent);
         }
 
         .owner-badge {
-            background: var(--accent); color: #000; padding: 4px 15px;
-            border-radius: 50px; font-size: 0.75rem; font-weight: 800;
-            display: inline-block; margin-top: 8px; text-transform: uppercase;
+            background: var(--accent);
+            color: #000;
+            padding: 4px 15px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            display: inline-block;
+            margin-top: 8px;
+            text-transform: uppercase;
         }
 
         #ui-message {
-            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-            background: #dc2626; color: white; padding: 12px 20px;
-            border-radius: 10px; font-size: 0.85rem; font-weight: bold;
-            z-index: 10000; display: none; width: 90%; text-align: center;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--error-red);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+            display: none;
+            width: 90%;
+            text-align: center;
         }
 
-        /* --- NAVEGACIÓN --- */
-        .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: #1e293b; gap: 1px; }
-        .tab-btn {
-            background: #1e293b; border: none; color: #94a3b8; padding: 12px 5px;
-            cursor: pointer; display: flex; flex-direction: column; align-items: center;
-            font-size: 0.65rem; font-weight: 700; text-transform: uppercase; transition: 0.3s;
+        .nav-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background: #1e293b;
+            gap: 1px;
         }
-        .tab-btn svg { width: 20px; height: 20px; fill: currentColor; margin-bottom: 4px; }
-        .tab-btn.active { color: var(--accent); background: #334155; border-bottom: 3px solid var(--accent); }
+
+        .tab-btn {
+            background: #1e293b;
+            border: none;
+            color: #94a3b8;
+            padding: 12px 5px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .tab-btn svg { width: 18px; height: 18px; fill: currentColor; margin-bottom: 4px; }
+
+        .tab-btn.active {
+            color: var(--accent);
+            background: #334155;
+            border-bottom: 3px solid var(--accent);
+        }
 
         .main-content { flex: 1; padding: 15px; overflow-y: auto; }
         .section { display: none; }
-        .section.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .section.active { display: block; }
 
         h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 12px; border-left: 4px solid var(--accent); padding-left: 10px; }
 
-        /* --- TARJETAS Y FORMULARIOS --- */
         .card {
-            background: var(--card-bg); border-radius: 15px; padding: 15px;
-            margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
         .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase; }
         .input-group input, .input-group select {
-            width: 100%; padding: 12px; border: 2px solid #e2e8f0;
-            border-radius: 10px; font-size: 1rem; font-weight: 600; color: #334155;
-            background: #fff;
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
         }
-        .input-group input:focus, .input-group select:focus { border-color: var(--blue-pro); outline: none; }
 
         .btn-main {
-            background: var(--blue-pro); color: white; border: none; width: 100%;
-            padding: 15px; border-radius: 12px; font-weight: 800; text-transform: uppercase;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: var(--blue-pro);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .canvas-wrap {
+            background: #0f172a;
+            border-radius: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+
+        .canvas-label {
+            font-size: 0.65rem;
+            color: var(--accent);
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
         }
 
         .radio-group { display: flex; gap: 8px; }
         .radio-btn {
             flex: 1; padding: 12px; background: #e2e8f0; border-radius: 10px; text-align: center;
-            font-size: 0.8rem; font-weight: 700; cursor: pointer; color: var(--text-muted);
+            font-size: 0.8rem; font-weight: 700; cursor: pointer;
         }
         .radio-btn.active { background: var(--blue-pro); color: white; }
 
-        /* --- GRÁFICOS --- */
-        .canvas-wrap {
-            background: #1e293b; /* Fondo oscuro SOLO para el dibujo técnico */
-            border-radius: 15px; margin-top: 15px; padding: 0;
-            overflow: hidden; border: 2px solid #334155; position: relative;
-        }
-        .canvas-label {
-            position: absolute; top: 10px; left: 10px; font-size: 0.65rem; color: #fff;
-            background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; pointer-events: none;
-        }
-
-        /* --- TABLAS --- */
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-        .data-table th { background: #f1f5f9; padding: 10px; text-align: center; color: #475569; }
-        .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 600; }
-        
-        .sling-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; background: white; padding: 12px; border-radius: 12px; }
-        
-        /* Switch mejorado */
-        .switch-wrap { display: flex; align-items: center; justify-content: space-between; background: #eff6ff; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #bfdbfe; cursor: pointer; }
-        .switch-label { font-weight: 700; color: #1e40af; font-size: 0.8rem; text-transform: uppercase; }
-        .switch-checkbox { width: 20px; height: 20px; accent-color: var(--blue-pro); }
-
         #loading-overlay {
-            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9);
+            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white;
+            text-align: center; padding: 20px;
         }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .btn-flip { position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 5px; font-size: 0.7rem; cursor: pointer; z-index: 20; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        .data-table th { background: #1e293b; color: white; padding: 10px; text-align: center; }
+        .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 600; }
+        
+        .sling-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; background: white; padding: 12px; border-radius: 12px; }
+        
+        /* Checkbox estilo switch */
+        .switch-wrap { display: flex; align-items: center; justify-content: space-between; background: #e0f2fe; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #bae6fd; cursor: pointer; }
+        .switch-label { font-weight: 700; color: #0369a1; font-size: 0.85rem; text-transform: uppercase; }
+        .switch-checkbox { width: 20px; height: 20px; accent-color: var(--blue-pro); }
     </style>
 </head>
 <body>
 
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
+    <div class="splash-divider"></div>
     <div class="splash-name">OFICIAL: XURXO</div>
-    <div style="margin-top:20px; font-size:0.8rem; opacity:0.7;">v26.0 RESTORED</div>
+    <div class="splash-version">BUILD 2024 - v24.0 (MASTER 3D)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div style="font-weight:bold;">GENERANDO...</div>
+    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">PROCESANDO DOCUMENTOS</div>
+    <div id="loading-msg" style="font-size: 0.9rem; color: var(--accent); max-width: 300px;">
+        XURXO, estamos preparando la información técnica...
+    </div>
 </div>
 
 <div class="app-container" id="capture-area">
     <header>
         <h1>TUBERO PRO</h1>
         <div class="owner-badge">OFICIAL: XURXO</div>
+        <div class="subtitle">EDICIÓN ELITE v24.0</div>
     </header>
 
     <nav class="nav-tabs" id="nav-ignore">
@@ -212,8 +341,8 @@
 
             <div id="resBP" style="display:none">
                 <div class="canvas-wrap">
-                    <div class="canvas-label">Vista Técnica</div>
-                    <svg id="jointSvg" viewBox="0 0 400 300" style="background: #1e293b;"></svg>
+                    <div class="canvas-label">Vista Técnica de Montaje</div>
+                    <svg id="jointSvg" viewBox="0 0 400 300" style="background: #0f172a;"></svg>
                 </div>
 
                 <div style="background:#eff6ff; padding:15px; border-radius:15px; margin-bottom:15px; border:2px solid #3b82f6; display:flex; justify-content: space-around; text-align: center; margin-top: 15px;">
@@ -230,15 +359,23 @@
                             <div class="radio-btn" id="formatA3" onclick="setFormat('a3')">Plano A3</div>
                         </div>
                     </div>
-                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">EXPORTAR PLANTILLA 1:1 (HD)</button>
-                    <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">EXPORTAR FICHA TÉCNICA</button>
+                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">
+                        EXPORTAR PLANTILLA 1:1 (HD)
+                    </button>
+                    <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">
+                        EXPORTAR FICHA TÉCNICA
+                    </button>
                 </div>
 
                 <div class="card" style="padding:0; overflow:hidden;">
-                    <table class="data-table" id="tableBP"><thead><tr><th>PTO</th><th>GRAD</th><th>ORD (mm)</th></tr></thead><tbody></tbody></table>
+                    <table class="data-table" id="tableBP">
+                        <thead><tr><th>PTO</th><th>GRAD</th><th>ORD (mm)</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
+
                 <div class="canvas-wrap">
-                    <div class="canvas-label">Plantilla Corte</div>
+                    <div class="canvas-label">Plantilla para Corte</div>
                     <svg id="bpSvg" viewBox="0 0 400 160"></svg>
                 </div>
             </div>
@@ -247,15 +384,16 @@
         <div id="tab-bayoneta" class="section">
             <h2>Cálculo de Bayonetas</h2>
             <div class="card">
+                
                 <label class="switch-wrap">
-                    <span class="switch-label">ACTIVAR GIRADA (ROLLING / 3D)</span>
+                    <span class="switch-label">ACTIVAR GIRADA (3D / ROLLING)</span>
                     <input type="checkbox" id="checkRolling" class="switch-checkbox" onchange="toggleRoll()">
                 </label>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div class="input-group">
-                        <label style="color:#0284c7;">Avance (Run)</label>
-                        <input type="number" id="byRun" placeholder="mm" style="border-color:#0284c7;">
+                        <label style="color:#2563eb;">Avance (Run)</label>
+                        <input type="number" id="byRun" placeholder="mm" style="border-color:#2563eb;">
                     </div>
                     <div class="input-group">
                         <label style="color:#dc2626;">Altura (Set)</label> 
@@ -263,8 +401,8 @@
                     </div>
                 </div>
 
-                <div class="input-group" id="groupRoll" style="display:none; background:#ecfdf5; padding:10px; border-radius:10px; border:1px solid #6ee7b7;">
-                    <label style="color:#059669;">Desplazamiento (Roll)</label>
+                <div class="input-group" id="groupRoll" style="display:none; background:#e0f2fe; padding:10px; border-radius:10px; border:1px solid #7dd3fc;">
+                    <label style="color:#059669;">Desplazamiento Lateral (Roll)</label>
                     <input type="number" id="byRoll" placeholder="mm" style="border-color:#059669;">
                 </div>
 
@@ -274,11 +412,22 @@
                         <div class="radio-btn active" id="btnDiaIn" onclick="toggleDiaUnit('in')">Pulgadas (")</div>
                         <div class="radio-btn" id="btnDiaMm" onclick="toggleDiaUnit('mm')">Milímetros (mm)</div>
                     </div>
-                    <div id="selContainerIn">
-                        <select id="byDiaSel"><option value="2">2"</option><option value="3">3"</option><option value="4" selected>4"</option><option value="6">6"</option><option value="8">8"</option><option value="10">10"</option><option value="12">12"</option></select>
+                    
+                    <div id="inputDiaIn">
+                        <select id="byDiaSel" style="background:#fff;">
+                            <option value="2">2"</option>
+                            <option value="3">3"</option>
+                            <option value="4" selected>4"</option>
+                            <option value="6">6"</option>
+                            <option value="8">8"</option>
+                            <option value="10">10"</option>
+                            <option value="12">12"</option>
+                            <option value="14">14"</option>
+                            <option value="16">16"</option>
+                        </select>
                     </div>
-                    <div id="inpContainerMm" style="display:none;">
-                        <input type="number" id="byDiaInp" placeholder="Ej: 114 (para 4 pulg)">
+                    <div id="inputDiaMm" style="display:none;">
+                        <input type="number" id="byDiaInp" placeholder="Ej: 100 (para DN100)" style="background:#fff;">
                     </div>
                 </div>
 
@@ -294,272 +443,603 @@
             </div>
 
             <div id="resByPro" style="display:none;">
-                <div class="canvas-wrap" style="padding:0; height:auto; min-height:300px;">
-                    <div class="canvas-label">Isométrico (Técnico)</div>
-                    <button class="btn-flip" onclick="flipIso()">⟲ GIRAR</button>
-                    <svg id="bySvg" style="width:100%; height:100%; min-height:300px; background:#1e293b;"></svg>
+                <div class="canvas-wrap" style="padding:10px;">
+                    <div class="canvas-label">Vista 3D Isométrica (CAD + Estructura)</div>
+                    <svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:320px; box-shadow:inset 0 0 20px #0f172a;"></svg>
                 </div>
 
                 <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
-                    <table class="data-table" style="margin-top:0;">
-                        <tr><td style="text-align:left; color:#166534;">Ángulo</td><td style="font-weight:900; color:#166534; font-size:1.1rem;" id="outByAng">0°</td></tr>
-                        <tr><td style="text-align:left;">Recorrido C-C</td><td style="font-weight:bold;" id="outByTrav">0</td></tr>
-                        <tr><td style="text-align:left;">Descuento (x2)</td><td style="font-weight:bold; color:#ef4444;" id="outByDesc">0</td></tr>
-                        <tr style="background:#dcfce7;"><td style="text-align:left; font-weight:800; color:#15803d;">CORTE TUBO</td><td style="font-weight:900; font-size:1.4rem; color:#15803d;" id="outByCut">0</td></tr>
+                    <table class="data-table">
+                        <tr>
+                            <td style="text-align:left; color:#166534;">Ángulo Codos</td>
+                            <td style="font-weight:900; color:#166534; font-size:1.1rem;" id="outByAng">0°</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left;">Recorrido (C-C)</td>
+                            <td style="font-weight:bold;" id="outByTrav">0</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left;">Avance Codo (x2)</td>
+                            <td style="font-weight:bold; color:#ef4444;" id="outByDesc">0</td>
+                        </tr>
+                        <tr style="background:#dcfce7;">
+                            <td style="text-align:left; font-weight:800; color:#15803d;">CARRETE (CORTE)</td>
+                            <td style="font-weight:900; font-size:1.4rem; color:#15803d;" id="outByCut">0</td>
+                        </tr>
                     </table>
                 </div>
             </div>
         </div>
 
-        <div id="tab-bridas" class="section"><h2>Manual ASME B16.5</h2><div class="card"><div class="input-group"><label>NPS</label><select id="brSize"><option value="2">2"</option><option value="4" selected>4"</option><option value="6">6"</option><option value="8">8"</option></select></div><div class="input-group"><label>Clase</label><select id="brClass"><option value="150">150#</option><option value="300">300#</option></select></div><button class="btn-main" onclick="getBrida()">Consultar</button></div><div id="brRes" class="card" style="display:none"><table class="data-table"><tr><td>Ext.</td><td id="brOD">0</td></tr><tr><td>Centro</td><td id="brBC">0</td></tr><tr><td>Agujeros</td><td id="brH">0</td></tr></table></div></div>
-        <div id="tab-pesos" class="section"><h2>Cálculo de Pesos</h2><div class="card"><div class="input-group"><label>Diámetro</label><select id="pD"><option value="4">4"</option><option value="6">6"</option></select></div><div class="input-group"><label>Largo (m)</label><input type="number" id="pL"></div><button class="btn-main" onclick="calcPeso()">Calcular</button></div><div id="resP" class="card" style="display:none; text-align:center;"><div id="resPVal" style="font-size:1.5rem; font-weight:bold;">0 Kg</div></div></div>
-        <div id="tab-codos" class="section"><h2>Avance Codos</h2><div class="card"><div class="input-group"><label>Diámetro</label><input type="number" id="coD"></div><div class="input-group"><label>Ángulo</label><input type="number" id="coA" value="90"></div><button class="btn-main" onclick="calcCo()">Calcular</button></div><div id="resCo" class="card" style="display:none; text-align:center;"><div id="resCoVal" style="font-size:1.5rem; font-weight:bold;">0 mm</div></div></div>
-        <div id="tab-cargas" class="section"><h2>Eslingas</h2><div id="slingList"></div></div>
+        <div id="tab-bridas" class="section">
+            <h2>Manual ASME B16.5</h2>
+            <div class="card">
+                <div class="input-group"><label>NPS</label>
+                    <select id="brSize">
+                        <option value="2">2"</option><option value="3">3"</option><option value="4" selected>4"</option>
+                        <option value="6">6"</option><option value="8">8"</option><option value="12">12"</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>Clase</label>
+                    <select id="brClass"><option value="150">150#</option><option value="300">300#</option></select>
+                </div>
+                <button class="btn-main" onclick="getBrida()">Consultar Datos</button>
+            </div>
+            <div id="brRes" class="card" style="display:none">
+                <table class="data-table">
+                    <tr><td>Ext. (OD)</td><td id="brOD">0</td></tr>
+                    <tr><td>Centro (BC)</td><td id="brBC">0</td></tr>
+                    <tr><td>Agujeros</td><td id="brH">0</td></tr>
+                    <tr><td>Llave (mm)</td><td id="brW">0</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-pesos" class="section">
+            <h2>Cálculo de Pesos</h2>
+            <div class="card">
+                <div class="input-group"><label>Diámetro</label>
+                    <select id="pD"><option value="4" selected>4"</option><option value="6">6"</option><option value="8">8"</option></select>
+                </div>
+                <div class="input-group"><label>Schedule</label>
+                    <select id="pS"><option value="40">Sch 40</option><option value="80">Sch 80</option></select>
+                </div>
+                <div class="input-group"><label>Largo (m)</label><input type="number" id="pL" placeholder="6"></div>
+                <button class="btn-main" onclick="calcPeso()">Calcular Kg</button>
+            </div>
+            <div id="resP" class="result-box" style="display:none; text-align:center; background:#fefce8;"><div class="res-val" id="resPVal">0 Kg</div></div>
+        </div>
+
+        <div id="tab-codos" class="section">
+            <h2>Avance Codos</h2>
+            <div class="card">
+                <div class="input-group"><label>Diámetro (In)</label><input type="number" id="coD" placeholder="4"></div>
+                <div class="input-group"><label>Ángulo (°)</label><input type="number" id="coA" value="90"></div>
+                <div class="radio-group">
+                    <div class="radio-btn active" id="coLR" onclick="setCo('LR')">R. Largo</div>
+                    <div class="radio-btn" id="coSR" onclick="setCo('SR')">R. Corto</div>
+                </div>
+                <button class="btn-main" style="margin-top:15px" onclick="calcCo()">Calcular</button>
+            </div>
+            <div id="resCo" class="result-box" style="display:none; text-align:center;"><div class="res-val" id="resCoVal">0 mm</div></div>
+        </div>
+
+        <div id="tab-cargas" class="section">
+            <h2>Eslingas</h2>
+            <div id="slingList"></div>
+        </div>
 
     </div>
 </div>
 
 <script>
-    window.addEventListener('load', () => { setTimeout(() => { document.getElementById('splash-screen').style.opacity = '0'; setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; }, 800); }, 2000); });
+    // --- LÓGICA DE INICIO (SPLASH) ---
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 800);
+        }, 3000); 
+    });
 
     // Variables Globales
-    let unitBP='in', divBP=16, exportFormat='a4', coType='LR';
-    let lastBP = { pts: [], per: 0, r: 0, c: 0, R_cab_mm: 0, r_ram_mm: 0, angRad: 0, unit: 'in', paso: 0, angle: 90, margin: 0, minY_raw: 0 };
-    let byUnitDia = 'in'; 
-    let isoFlip = false;
+    let unitBP = 'in', divBP = 16, exportFormat = 'a4', coType = 'LR';
+    // Guardamos datos extendidos para poder recalcular en alta resolución
+    let lastBP = { 
+        pts: [], per: 0, r: 0, c: 0, 
+        R_cab_mm: 0, r_ram_mm: 0, angRad: 0, 
+        unit: 'in', paso: 0, angle: 90, margin: 0,
+        minY_raw: 0 
+    };
 
-    function showMsg(t) { const b=document.getElementById('ui-message'); b.innerText=t; b.style.display='block'; setTimeout(()=>b.style.display='none',3000); }
-    function setTab(id, b) { document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active')); document.getElementById(id).classList.add('active'); b.classList.add('active'); }
-    function setFormat(f) { exportFormat=f; document.getElementById('formatA4').classList.toggle('active',f==='a4'); document.getElementById('formatA3').classList.toggle('active',f==='a3'); }
-    function getOD(inch) { const m={"2":60.3,"3":88.9,"4":114.3,"6":168.3,"8":219.1,"10":273.0,"12":323.8,"14":355.6,"16":406.4}; return m[inch]||inch*25.4; }
-    
-    // Helpers
-    function setUn(u) { unitBP=u; document.getElementById('unIn').classList.toggle('active',u==='in'); document.getElementById('unMm').classList.toggle('active',u==='mm'); }
-    function setDiv(d) { divBP=d; document.getElementById('div8').classList.toggle('active',d===8); document.getElementById('div16').classList.toggle('active',d===16); }
+    function showMsg(text) {
+        const box = document.getElementById('ui-message');
+        box.innerText = text; box.style.display = 'block';
+        setTimeout(() => { box.style.display = 'none'; }, 3000);
+    }
 
-    // --- BOCA PEZ ---
+    function setTab(id, btn) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function setFormat(f) {
+        exportFormat = f;
+        document.getElementById('formatA4').classList.toggle('active', f==='a4');
+        document.getElementById('formatA3').classList.toggle('active', f==='a3');
+    }
+
+    function getOD(inch) {
+        const m = {"2":60.3, "3":88.9, "4":114.3, "6":168.3, "8":219.1, "10":273.0, "12":323.8, "14":355.6, "16":406.4};
+        return m[inch] || inch * 25.4;
+    }
+
+    // Helpers UI
+    function setUn(u) { unitBP = u; document.getElementById('unIn').classList.toggle('active', u==='in'); document.getElementById('unMm').classList.toggle('active', u==='mm'); }
+    function setDiv(d) { divBP = d; document.getElementById('div8').classList.toggle('active', d===8); document.getElementById('div16').classList.toggle('active', d===16); }
+    function setCo(t) { coType = t; document.getElementById('coLR').classList.toggle('active', t==='LR'); document.getElementById('coSR').classList.toggle('active', t==='SR'); }
+
+    // ==========================================
+    // --- 1. MÓDULO BOCA DE PEZ (MEJORADO) ---
+    // ==========================================
     function calcBP() {
-        let cIn=parseFloat(document.getElementById('bpC').value), rIn=parseFloat(document.getElementById('bpR').value), ang=parseFloat(document.getElementById('bpAng').value);
-        let marg=document.getElementById('bpMarg').checked?30:10;
-        if(!cIn||!rIn||!ang){showMsg("Faltan datos");return;}
-        let R_cab=(unitBP==='in'?getOD(cIn):cIn)/2, r_ram=(unitBP==='in'?getOD(rIn):rIn)/2, angRad=ang*Math.PI/180;
-        if(r_ram>R_cab){showMsg("Error: Ramal > Cabezal");return;}
-        let per=r_ram*2*Math.PI, paso=per/divBP, rawPts=[];
-        for(let i=0;i<=divBP;i++){
-            let phi=(i*360/divBP)*Math.PI/180;
-            let y=(Math.sqrt(Math.pow(R_cab,2)-Math.pow(r_ram*Math.sin(phi),2))/Math.sin(angRad))-(r_ram*Math.cos(phi)/Math.tan(angRad));
+        let cIn = parseFloat(document.getElementById('bpC').value);
+        let rIn = parseFloat(document.getElementById('bpR').value);
+        let ang = parseFloat(document.getElementById('bpAng').value);
+        let marg = document.getElementById('bpMarg').checked ? 30 : 10; 
+
+        if(!cIn || !rIn || !ang) { showMsg("Faltan datos"); return; }
+
+        let R_cab = (unitBP === 'in' ? getOD(cIn) : cIn) / 2;
+        let r_ram = (unitBP === 'in' ? getOD(rIn) : rIn) / 2;
+        let angRad = ang * Math.PI / 180;
+        
+        if(r_ram > R_cab) { showMsg("Error: Ramal > Cabezal"); return; }
+
+        let per = (r_ram * 2) * Math.PI;
+        let paso = per / divBP;
+        
+        // --- CÁLCULO PARA TABLA (Baja Resolución) ---
+        let rawPts = [];
+        for(let i=0; i<=divBP; i++){
+            let phi = (i * 360 / divBP) * Math.PI / 180;
+            let y = (Math.sqrt(Math.pow(R_cab, 2) - Math.pow(r_ram * Math.sin(phi), 2)) / Math.sin(angRad)) - (r_ram * Math.cos(phi) / Math.tan(angRad));
             rawPts.push(y);
         }
-        let minY=Math.min(...rawPts), finalPts=rawPts.map(y=>(y-minY)+marg);
-        lastBP={per, r:rIn, c:cIn, pts:finalPts, unit:unitBP, paso, angle:ang, margin:marg, R_cab_mm:R_cab, r_ram_mm:r_ram, angRad, minY_raw:minY};
-        let tb=document.querySelector("#tableBP tbody"); tb.innerHTML="";
-        lastBP.pts.forEach((p,i)=>{tb.innerHTML+=`<tr><td>${i}</td><td>${(i*360/divBP).toFixed(0)}°</td><td>${p.toFixed(1)}</td></tr>`;});
-        document.getElementById('resBP').style.display='block';
-        document.getElementById('bpPer').innerText=per.toFixed(1); document.getElementById('bpPas').innerText=paso.toFixed(1);
+
+        // Normalizar alturas
+        let minY = Math.min(...rawPts);
+        let finalPts = rawPts.map(y => (y - minY) + marg);
+        
+        // Guardar estado global COMPLETO
+        lastBP = { 
+            per: per, 
+            r: rIn, c: cIn, 
+            pts: finalPts, 
+            unit: unitBP, 
+            paso: paso, 
+            angle: ang,
+            margin: marg,
+            R_cab_mm: R_cab,
+            r_ram_mm: r_ram,
+            angRad: angRad,
+            minY_raw: minY 
+        };
+        
+        // Renderizar tabla
+        let tbody = document.querySelector("#tableBP tbody");
+        tbody.innerHTML = "";
+        lastBP.pts.forEach((p, i) => { 
+            tbody.innerHTML += `<tr><td>${i}</td><td>${(i*360/divBP).toFixed(0)}°</td><td>${p.toFixed(1)}</td></tr>`; 
+        });
+        
+        document.getElementById('resBP').style.display = 'block';
+        document.getElementById('bpPer').innerText = per.toFixed(1) + " mm";
+        document.getElementById('bpPas').innerText = paso.toFixed(1) + " mm";
+        
+        drawJointSvg(R_cab, r_ram, ang);
         drawTemplateSvg();
     }
 
     function drawTemplateSvg() {
-        let svg=document.getElementById('bpSvg'), w=400, h=160, step=w/(lastBP.pts.length-1);
-        let maxVal=Math.max(...lastBP.pts), scY=(h-20)/(maxVal||1), path=`M 0 ${h}`;
-        lastBP.pts.forEach((p,i)=>{ path+=` L ${i*step} ${h-(p*scY)}`; }); path+=` L 400 ${h} Z`;
-        let fajaY=h-(lastBP.margin*scY);
-        svg.innerHTML=`<rect width="400" height="160" fill="#1e293b"/><line x1="0" y1="${fajaY}" x2="400" y2="${fajaY}" stroke="#facc15" stroke-dasharray="4"/><path d="${path}" stroke="#38bdf8" stroke-width="2" fill="rgba(56,189,248,0.2)"/>`;
+        let svg = document.getElementById('bpSvg');
+        let w = 400; let h = 160; 
+        let step = w / (lastBP.pts.length - 1);
+        let maxVal = Math.max(...lastBP.pts);
+        let scY = (h - 20) / (maxVal || 1); 
+
+        let path = `M 0 ${h}`; 
+        lastBP.pts.forEach((p, i) => {
+            let px = i * step;
+            let py = h - (p * scY); 
+            path += ` L ${px} ${py}`;
+        });
+        path += ` L 400 ${h} Z`; 
+
+        let fajaY = h - (lastBP.margin * scY);
+        let fajaLine = `<line x1="0" y1="${fajaY}" x2="400" y2="${fajaY}" stroke="#facc15" stroke-dasharray="4"/>`;
+
+        svg.innerHTML = `<rect width="400" height="160" fill="#0f172a"/>
+                         ${fajaLine}
+                         <path d="${path}" stroke="var(--blue-pro)" stroke-width="2" fill="rgba(2, 132, 199, 0.2)" stroke-linejoin="round"/>`;
     }
 
+    // ==============================================================
+    // --- 2. EXPORTACIÓN PDF (PERFILADO COMPLETO + CURVA HD) ---
+    // ==============================================================
     function pdfMultiPaginado() {
-        if(!lastBP.pts.length)return;
-        document.getElementById('loading-overlay').style.display='flex';
-        setTimeout(()=>{
-            const { jsPDF } = window.jspdf; const doc=new jsPDF({orientation:'l', unit:'mm', format:exportFormat});
-            let hdPts=[]; for(let i=0;i<=360;i++){
-                let phi=(i*Math.PI/180);
-                let y=(Math.sqrt(Math.pow(lastBP.R_cab_mm,2)-Math.pow(lastBP.r_ram_mm*Math.sin(phi),2))/Math.sin(lastBP.angRad))-(lastBP.r_ram_mm*Math.cos(phi)/Math.tan(lastBP.angRad));
-                hdPts.push({x:(i/360)*lastBP.per, y:(y-lastBP.minY_raw)+lastBP.margin});
-            }
-            let pW=(exportFormat==='a3'?420:297)-40, nP=Math.ceil(lastBP.per/pW);
-            for(let p=0;p<nP;p++){
-                if(p>0)doc.addPage();
-                doc.setFontSize(10); doc.text(`PLANTILLA 1:1 - PÁG ${p+1}/${nP}`, 20, 15);
-                let start=p*pW, end=(p+1)*pW, yBase=180;
-                doc.line(20, yBase-lastBP.margin, 20+pW, yBase-lastBP.margin); // Faja
-                for(let i=0;i<hdPts.length-1;i++){
-                    let p1=hdPts[i], p2=hdPts[i+1];
-                    if(p2.x>start && p1.x<end){
-                        let x1=(p1.x-start)+20, y1=yBase-p1.y, x2=(p2.x-start)+20, y2=yBase-p2.y;
-                        if(x1>=20 && x2<=20+pW) doc.line(x1,y1,x2,y2);
+        if(!lastBP.pts.length) return;
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'flex';
+        
+        setTimeout(() => {
+            try {
+                const { jsPDF } = window.jspdf;
+                const isA3 = (exportFormat === 'a3');
+                const pW = isA3 ? 420 : 297; 
+                const pH = isA3 ? 297 : 210; 
+                const margin = 20; 
+                const drawableW = pW - (margin * 2);
+                
+                const numPages = Math.ceil(lastBP.per / drawableW);
+                const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: exportFormat });
+
+                // Generar 360 puntos HD
+                const hdSteps = 360; 
+                let hdPoints = [];
+                for(let i=0; i<=hdSteps; i++) {
+                    let phi = (i * 360 / hdSteps) * Math.PI / 180;
+                    let y = (Math.sqrt(Math.pow(lastBP.R_cab_mm, 2) - Math.pow(lastBP.r_ram_mm * Math.sin(phi), 2)) / Math.sin(lastBP.angRad)) - (lastBP.r_ram_mm * Math.cos(phi) / Math.tan(lastBP.angRad));
+                    let finalY = (y - lastBP.minY_raw) + lastBP.margin;
+                    let finalX = (i / hdSteps) * lastBP.per;
+                    hdPoints.push({x: finalX, y: finalY});
+                }
+
+                for (let p = 0; p < numPages; p++) {
+                    if (p > 0) doc.addPage();
+                    
+                    // Cabecera
+                    doc.setFontSize(14); doc.setTextColor(0,0,0);
+                    doc.text(`PLANTILLA 1:1 - XURXO (${exportFormat.toUpperCase()}) - PÁG ${p+1}/${numPages}`, margin, 15);
+                    doc.setFontSize(10); doc.setTextColor(100);
+                    doc.text(`Ramal: ${lastBP.r}" | Ángulo: ${lastBP.angle}° | Perímetro: ${lastBP.per.toFixed(1)}mm`, margin, 22);
+                    
+                    doc.setDrawColor(220, 38, 38); doc.setLineWidth(0.5);
+                    doc.line(margin, 30, margin + 100, 30);
+                    doc.line(margin, 28, margin, 32); doc.line(margin+100, 28, margin+100, 32);
+                    doc.setTextColor(220, 38, 38); doc.setFontSize(8);
+                    doc.text("VERIFICAR ESCALA: 100mm", margin + 25, 29);
+
+                    // Coordenadas
+                    const startX_Abs = p * drawableW; 
+                    const endX_Abs = (p + 1) * drawableW;
+                    const yBase = 180; // Suelo de la plantilla en el papel
+
+                    // 1. DIBUJAR PERFILADO (CONTORNO DE RECORTE)
+                    doc.setDrawColor(0); doc.setLineWidth(0.6); // Línea gruesa para cortar
+
+                    // A. Lateral Izquierdo
+                    let firstPtHeight = getInterpHeight(startX_Abs, hdPoints);
+                    doc.line(margin, yBase, margin, yBase - firstPtHeight);
+
+                    // B. Curva Superior (HD)
+                    let pointsInPage = [];
+                    pointsInPage.push({x: startX_Abs, y: firstPtHeight});
+                    for (let pt of hdPoints) {
+                        if(pt.x > startX_Abs && pt.x < endX_Abs) {
+                            pointsInPage.push(pt);
+                        }
+                    }
+                    let lastPtHeight = getInterpHeight(Math.min(endX_Abs, lastBP.per), hdPoints);
+                    pointsInPage.push({x: Math.min(endX_Abs, lastBP.per), y: lastPtHeight});
+
+                    // Trazar curva
+                    for(let i=0; i<pointsInPage.length-1; i++){
+                        let p1 = pointsInPage[i];
+                        let p2 = pointsInPage[i+1];
+                        let x1 = (p1.x - startX_Abs) + margin;
+                        let y1 = yBase - p1.y;
+                        let x2 = (p2.x - startX_Abs) + margin;
+                        let y2 = yBase - p2.y;
+                        doc.line(x1, y1, x2, y2);
+                    }
+
+                    // C. Lateral Derecho
+                    let rightEdgeX = (Math.min(endX_Abs, lastBP.per) - startX_Abs) + margin;
+                    let rightEdgeHeight = lastPtHeight;
+                    doc.line(rightEdgeX, yBase - rightEdgeHeight, rightEdgeX, yBase);
+
+                    // D. Base Inferior (Cierre del rectángulo)
+                    doc.line(rightEdgeX, yBase, margin, yBase);
+                    
+                    doc.setFontSize(8); doc.setTextColor(150);
+                    doc.text("LÍNEA DE CORTE (PERFILADO)", margin + 5, yBase + 4);
+
+                    // 2. LÍNEA DE REFERENCIA DE FAJA
+                    const fajaY = yBase - lastBP.margin;
+                    doc.setDrawColor(255, 140, 0); doc.setLineWidth(0.3); doc.setLineDash([3, 2], 0);
+                    doc.line(margin, fajaY, rightEdgeX, fajaY);
+                    doc.setTextColor(255, 140, 0);
+                    doc.text(`DOBLAR/REFERENCIA (${lastBP.margin}mm)`, margin + 5, fajaY - 2);
+                    
+                    doc.setLineDash([], 0);
+
+                    // 3. Ejes verticales
+                    const quadrantStep = lastBP.per / 4;
+                    for(let q=0; q<=4; q++) {
+                        let qX = q * quadrantStep;
+                        if(qX >= startX_Abs && qX <= endX_Abs) {
+                            let plotX = (qX - startX_Abs) + margin;
+                            doc.setDrawColor(200); doc.setLineWidth(0.2);
+                            doc.line(plotX, yBase, plotX, yBase - 150); 
+                            doc.setFontSize(8); doc.setTextColor(100);
+                            doc.text(`${q*90}°`, plotX + 1, yBase - 5);
+                        }
                     }
                 }
-                doc.line(20, yBase, 20+pW, yBase);
+                doc.save(`Plantilla_Corte_Xurxo_${lastBP.r}.pdf`);
+
+            } catch (err) { console.error(err); showMsg("Error PDF"); }
+            overlay.style.display = 'none';
+        }, 1000);
+    }
+
+    function getInterpHeight(targetX, points) {
+        for(let i=0; i<points.length-1; i++) {
+            if(points[i].x <= targetX && points[i+1].x >= targetX) {
+                let p1 = points[i];
+                let p2 = points[i+1];
+                let ratio = (targetX - p1.x) / (p2.x - p1.x);
+                if(isNaN(ratio)) ratio = 0; 
+                return p1.y + (p2.y - p1.y) * ratio;
             }
-            doc.save(`Plantilla_Xurxo_${lastBP.r}.pdf`);
-            document.getElementById('loading-overlay').style.display='none';
-        },1000);
+        }
+        return points[points.length-1].y; 
+    }
+
+    async function pdfInforme() {
+        if(!lastBP.pts.length) return;
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'flex';
+        try {
+            document.getElementById('nav-ignore').style.display = 'none';
+            document.getElementById('form-ignore').style.display = 'none';
+            document.getElementById('btns-ignore').style.display = 'none';
+            const canvas = await html2canvas(document.getElementById('capture-area'), { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            pdf.setFontSize(18); pdf.text("INFORME TÉCNICO - XURXO", 105, 15, { align: 'center' });
+            pdf.addImage(imgData, 'PNG', 10, 25, 190, (canvas.height * 190) / canvas.width);
+            pdf.save(`Informe_Xurxo_${lastBP.r}.pdf`);
+        } finally {
+            document.getElementById('nav-ignore').style.display = 'grid';
+            document.getElementById('form-ignore').style.display = 'block';
+            document.getElementById('btns-ignore').style.display = 'block';
+            overlay.style.display = 'none';
+        }
+    }
+
+
+    // ==========================================
+    // --- 3. MÓDULO BAYONETA (ISOMÉTRICO MASTER 3D) ---
+    // ==========================================
+    let byType = 'LR'; 
+    let byUnitDia = 'in';
+
+    function setByRad(t) {
+        byType = t;
+        document.getElementById('byLR').classList.toggle('active', t === 'LR');
+        document.getElementById('bySR').classList.toggle('active', t === 'SR');
+    }
+
+    function toggleDiaUnit(u) {
+        byUnitDia = u;
+        document.getElementById('btnDiaIn').classList.toggle('active', u === 'in');
+        document.getElementById('btnDiaMm').classList.toggle('active', u === 'mm');
+        document.getElementById('inputDiaIn').style.display = (u === 'in') ? 'block' : 'none';
+        document.getElementById('inputDiaMm').style.display = (u === 'mm') ? 'block' : 'none';
     }
     
-    async function pdfInforme() {
-         document.getElementById('loading-overlay').style.display='flex';
-         document.getElementById('nav-ignore').style.display='none';
-         document.getElementById('form-ignore').style.display='none';
-         document.getElementById('btns-ignore').style.display='none';
-         const canvas = await html2canvas(document.getElementById('capture-area'), {scale:2});
-         const img = canvas.toDataURL('image/png');
-         const pdf = new window.jspdf.jsPDF();
-         pdf.addImage(img,'PNG',10,20,190,0);
-         pdf.save('Informe_Tubero.pdf');
-         document.getElementById('nav-ignore').style.display='grid';
-         document.getElementById('form-ignore').style.display='block';
-         document.getElementById('btns-ignore').style.display='block';
-         document.getElementById('loading-overlay').style.display='none';
+    function toggleRoll() {
+        const isRolling = document.getElementById('checkRolling').checked;
+        document.getElementById('groupRoll').style.display = isRolling ? 'block' : 'none';
+        document.getElementById('byRoll').value = ''; 
     }
-
-    // --- BAYONETA LOGIC REPAIRED ---
-    function setByRad(t){ byType=t; document.getElementById('byLR').classList.toggle('active',t==='LR'); document.getElementById('bySR').classList.toggle('active',t==='SR'); }
-    function toggleDiaUnit(u){ 
-        byUnitDia=u; 
-        document.getElementById('btnDiaIn').classList.toggle('active',u==='in'); 
-        document.getElementById('btnDiaMm').classList.toggle('active',u==='mm');
-        document.getElementById('selContainerIn').style.display = u==='in'?'block':'none';
-        document.getElementById('inpContainerMm').style.display = u==='mm'?'block':'none';
-    }
-    function toggleRoll(){ 
-        const c=document.getElementById('checkRolling').checked; 
-        document.getElementById('groupRoll').style.display=c?'block':'none'; 
-        document.getElementById('byRoll').value=''; 
-    }
-    function flipIso(){ isoFlip = !isoFlip; calcBayonetaPro(); }
 
     function calcBayonetaPro() {
-        let run=parseFloat(document.getElementById('byRun').value);
-        let set=parseFloat(document.getElementById('bySet').value);
-        let roll=parseFloat(document.getElementById('byRoll').value)||0;
-        let isRoll=document.getElementById('checkRolling').checked;
+        const run = parseFloat(document.getElementById('byRun').value);
+        let set = parseFloat(document.getElementById('bySet').value);
         
-        if(isRoll && !roll){showMsg("Introduce el Roll");return;}
-        
-        // Calcular Hipotenusa del cajón (Diagonal)
-        let effSet = set; 
-        if(isRoll) effSet = Math.sqrt(set*set + roll*roll);
-        
-        // Diámetro
-        let diaBase = 0;
-        if(byUnitDia==='in') diaBase = parseFloat(document.getElementById('byDiaSel').value)*25.4;
-        else diaBase = parseFloat(document.getElementById('byDiaInp').value);
+        const isRolling = document.getElementById('checkRolling').checked;
+        const roll = parseFloat(document.getElementById('byRoll').value);
+        let effectiveSet = set; 
 
-        if(!run || !set || !diaBase){showMsg("Faltan datos");return;}
+        if(isRolling) {
+            if(!roll) { showMsg("Introduce el Roll (Desplazamiento)"); return; }
+            effectiveSet = Math.sqrt(Math.pow(set, 2) + Math.pow(roll, 2));
+        }
 
-        let travel = Math.sqrt(run*run + effSet*effSet);
-        let angRad = Math.atan(effSet/run);
-        let angDeg = angRad*180/Math.PI;
+        let diameterBase = 0;
+        if (byUnitDia === 'in') {
+            diameterBase = parseFloat(document.getElementById('byDiaSel').value) * 25.4; 
+        } else {
+            diameterBase = parseFloat(document.getElementById('byDiaInp').value); 
+        }
         
-        let radius = (byType==='LR')? diaBase*1.5 : diaBase;
-        let deduct = (radius * Math.tan(angRad/2)) * 2;
-        let cut = travel - deduct;
+        if (!run || !set || !diameterBase) { showMsg("Faltan datos"); return; }
 
-        document.getElementById('resByPro').style.display='block';
-        document.getElementById('outByAng').innerText = angDeg.toFixed(1)+"°";
-        document.getElementById('outByTrav').innerText = travel.toFixed(1)+" mm";
-        document.getElementById('outByDesc').innerText = "-"+deduct.toFixed(1);
+        const travel = Math.sqrt(Math.pow(run, 2) + Math.pow(effectiveSet, 2));
+        const angleRad = Math.atan(effectiveSet / run);
+        const angleDeg = angleRad * (180 / Math.PI);
+
+        const radius = (byType === 'LR') ? (diameterBase * 1.5) : (diameterBase * 1.0);
         
-        let cutEl = document.getElementById('outByCut');
-        cutEl.innerText = cut<0 ? "IMPOSIBLE" : cut.toFixed(1)+" mm";
-        cutEl.style.color = cut<0 ? "#ef4444" : "#15803d";
+        const elbowAdv = radius * Math.tan(angleRad / 2);
+        const totalDeduct = elbowAdv * 2; 
+        const cutLength = travel - totalDeduct;
 
-        drawIsoTechnical(run, set, isRoll?roll:0, cut);
+        document.getElementById('resByPro').style.display = 'block';
+        document.getElementById('outByAng').innerText = angleDeg.toFixed(1) + "°";
+        document.getElementById('outByTrav').innerText = travel.toFixed(1) + " mm";
+        document.getElementById('outByDesc').innerText = "-" + totalDeduct.toFixed(1) + " mm";
+        
+        const cutElem = document.getElementById('outByCut');
+        if (cutLength < 0) {
+            cutElem.innerText = "IMPOSIBLE";
+            cutElem.style.color = "red";
+            showMsg("¡Cuidado! Solape.");
+        } else {
+            cutElem.innerText = cutLength.toFixed(1) + " mm";
+            cutElem.style.color = "#15803d";
+        }
+
+        const rVal = isRolling ? roll : 0;
+        drawBayonetaIso(run, set, rVal, cutLength, angleDeg, effectiveSet);
     }
 
-    // --- DIBUJO ISOMÉTRICO (SOLID + WIREFRAME) ---
-    function drawIsoTechnical(run, set, roll, cut) {
+    // --- MOTOR ISOMÉTRICO 3D MASTER (SOLID + WIREFRAME) ---
+    function drawBayonetaIso(run, set, roll, cut, ang, effSet) {
         const svg = document.getElementById('bySvg');
-        svg.innerHTML = '';
-        
-        // Dirección X (Flip)
-        let dir = isoFlip ? -1 : 1; 
+        svg.innerHTML = ''; 
 
-        // Coordenadas 3D (x=Run, y=Set, z=Roll)
-        let p0 = {x:0, y:0, z:0};
-        let p1 = {x: run * dir, y:0, z:0};
-        let p2 = {x: run * dir, y:0, z: roll}; 
-        let p3 = {x: run * dir, y: set, z: roll};
+        // Definir coordenadas 3D (x=Run, y=Set, z=Roll)
+        const p0 = {x:0, y:0, z:0};
+        const pRun = {x:run, y:0, z:0};
+        const pCorner = {x:run, y:0, z:roll}; // La esquina invisible en el suelo
+        const pEnd = {x:run, y:set, z:roll};  
 
-        // Proyección ISO 30°
-        const angle = 30 * Math.PI / 180;
-        const cos30 = Math.cos(angle);
-        const sin30 = Math.sin(angle);
-
+        // Proyección Isométrica
         function toIso(pt) {
+            const angle = 30 * Math.PI / 180;
             return {
-                x: (pt.x - pt.z) * cos30,
-                y: (pt.x + pt.z) * sin30 - pt.y // Y SVG invertido
+                x: (pt.x - pt.z) * Math.cos(angle),
+                y: (pt.x + pt.z) * Math.sin(angle) - pt.y
             };
         }
 
-        let s0 = toIso(p0);
-        let s1 = toIso(p1);
-        let s2 = toIso(p2);
-        let s3 = toIso(p3);
+        const s0 = toIso(p0);
+        const sRun = toIso(pRun);
+        const sCorner = toIso(pCorner);
+        const sEnd = toIso(pEnd);
 
-        // Auto Zoom
-        let pts = [s0, s1, s2, s3];
-        let minX = Math.min(...pts.map(p=>p.x)), maxX = Math.max(...pts.map(p=>p.x));
-        let minY = Math.min(...pts.map(p=>p.y)), maxY = Math.max(...pts.map(p=>p.y));
-        let w = maxX - minX, h = maxY - minY;
-        let pad = Math.max(w,h) * 0.5 + 80;
-        
+        // Auto-Zoom
+        const pts = [s0, sRun, sCorner, sEnd];
+        const minX = Math.min(...pts.map(p=>p.x));
+        const maxX = Math.max(...pts.map(p=>p.x));
+        const minY = Math.min(...pts.map(p=>p.y));
+        const maxY = Math.max(...pts.map(p=>p.y));
+
+        const w = maxX - minX;
+        const h = maxY - minY;
+        const pad = Math.max(w, h) * 0.4 + 50; 
+        const strokeW = Math.max(w, h) * 0.015 + 2; 
+
         svg.setAttribute("viewBox", `${minX - pad} ${minY - pad} ${w + pad*2} ${h + pad*2}`);
-        svg.innerHTML += `<defs><marker id="arrow" markerWidth="6" markerHeight="6" refX="0" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#94a3b8"/></marker></defs>`;
 
-        const colRun = "#38bdf8"; const colSet = "#f87171"; const colRoll = "#4ade80"; 
-        const colPipe = cut < 0 ? "#b91c1c" : "#facc15"; 
-        const lnW = Math.max(w,h) * 0.008 + 1; 
+        let defs = `<defs>
+            <marker id="arrowHead" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,4 L4,2 z" fill="#94a3b8" />
+            </marker>
+        </defs>`;
+        svg.innerHTML += defs;
 
-        // 1. CAJA DE ALAMBRE (WIRE)
-        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${s1.x}" y2="${s1.y}" stroke="${colRun}" stroke-width="${lnW}" stroke-dasharray="5,5" opacity="0.6"/>`;
-        if(roll > 0) svg.innerHTML += `<line x1="${s1.x}" y1="${s1.y}" x2="${s2.x}" y2="${s2.y}" stroke="${colRoll}" stroke-width="${lnW}" stroke-dasharray="5,5" opacity="0.6"/>`;
-        svg.innerHTML += `<line x1="${s2.x}" y1="${s2.y}" x2="${s3.x}" y2="${s3.y}" stroke="${colSet}" stroke-width="${lnW}" stroke-dasharray="5,5" opacity="0.6"/>`;
+        // --- DIBUJADO DE LA CAJA (WIREFRAME) ---
+        // Esto es lo que faltaba para que fuera intuitivo. La "caja de cristal"
+        const dash = strokeW * 1.5;
+        const wireColor = "#475569";
+        const wireOpacity = "0.5";
 
-        // 2. TUBERÍA SÓLIDA (PIPE)
-        const pipeW = lnW * 3.5;
-        // Sombra
-        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${s3.x}" y2="${s3.y}" stroke="black" stroke-width="${pipeW}" stroke-linecap="round" opacity="0.5" transform="translate(4,4)"/>`;
-        // Cuerpo
-        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${s3.x}" y2="${s3.y}" stroke="${colPipe}" stroke-width="${pipeW}" stroke-linecap="round"/>`;
-        // Brillo
-        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${s3.x}" y2="${s3.y}" stroke="white" stroke-width="${pipeW/4}" stroke-linecap="round" opacity="0.4" transform="translate(-1,-2)"/>`;
-
-        // Esferas en las puntas (Codos)
-        let rDot = pipeW * 0.8;
-        svg.innerHTML += `<circle cx="${s0.x}" cy="${s0.y}" r="${rDot}" fill="#334155" stroke="#fff" stroke-width="1"/>`;
-        svg.innerHTML += `<circle cx="${s3.x}" cy="${s3.y}" r="${rDot}" fill="#334155" stroke="#fff" stroke-width="1"/>`;
-
-        // 3. ETIQUETAS
-        const fSize = lnW * 4.5; 
-        function drawText(txt, pA, pB, color) {
-            let mx = (pA.x + pB.x)/2, my = (pA.y + pB.y)/2;
-            let tw = txt.length * fSize * 0.6;
-            svg.innerHTML += `<rect x="${mx - tw/2}" y="${my - fSize/1.5}" width="${tw}" height="${fSize}" fill="rgba(15,23,42,0.8)" rx="4"/>`;
-            svg.innerHTML += `<text x="${mx}" y="${my + fSize*0.3}" fill="${color}" font-size="${fSize}" text-anchor="middle" font-weight="bold" font-family="monospace">${txt}</text>`;
+        // 1. Triángulo de suelo (Run -> Roll)
+        // L1: Run (Eje X)
+        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sRun.x}" y2="${sRun.y}" stroke="${wireColor}" stroke-width="1" stroke-dasharray="${dash}" opacity="${wireOpacity}"/>`;
+        // L2: Roll (Eje Z)
+        svg.innerHTML += `<line x1="${sRun.x}" y1="${sRun.y}" x2="${sCorner.x}" y2="${sCorner.y}" stroke="${wireColor}" stroke-width="1" stroke-dasharray="${dash}" opacity="${wireOpacity}"/>`;
+        // Diagonal suelo (s0 a sCorner) - Opcional, ayuda a ver la base
+        if(roll > 0) {
+             svg.innerHTML += `<path d="M ${s0.x} ${s0.y} L ${sRun.x} ${sRun.y} L ${sCorner.x} ${sCorner.y} Z" fill="rgba(255,255,255,0.03)" stroke="none"/>`;
         }
 
-        drawText(`R:${run}`, s0, s1, colRun);
-        if(roll>0) drawText(`D:${roll}`, s1, s2, colRoll);
-        drawText(`H:${set}`, s2, s3, colSet);
+        // 2. Línea Vertical (Set)
+        svg.innerHTML += `<line x1="${sCorner.x}" y1="${sCorner.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="${wireColor}" stroke-width="1" stroke-dasharray="${dash}" opacity="${wireOpacity}"/>`;
 
-        if(cut>0){
-            let cx = (s0.x + s3.x)/2, cy = (s0.y + s3.y)/2;
-            svg.innerHTML += `<rect x="${cx - fSize*3}" y="${cy - fSize*2.5}" width="${fSize*6}" height="${fSize*1.4}" fill="${colPipe}" stroke="black" rx="4"/>`;
-            svg.innerHTML += `<text x="${cx}" y="${cy - fSize*1.6}" fill="black" font-size="${fSize}" font-weight="900" text-anchor="middle">CORTE: ${cut.toFixed(0)}</text>`;
+        // 3. TUBERÍA SÓLIDA
+        const pipeColor = (cut < 0) ? "#ef4444" : "#facc15";
+        const pipeStroke = strokeW * 3.5;
+        
+        // Sombra realista tubo
+        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="black" stroke-width="${pipeStroke}" stroke-linecap="round" opacity="0.3" transform="translate(4,4)"/>`;
+        // Cuerpo tubo
+        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="${pipeColor}" stroke-width="${pipeStroke}" stroke-linecap="round"/>`;
+        // Brillo tubo
+        svg.innerHTML += `<line x1="${s0.x}" y1="${s0.y}" x2="${sEnd.x}" y2="${sEnd.y}" stroke="white" stroke-width="${pipeStroke/4}" stroke-linecap="round" opacity="0.4" transform="translate(-1,-2)"/>`;
+
+        // Conectores (Esferas/Codos)
+        const fitR = pipeStroke * 0.7;
+        svg.innerHTML += `<circle cx="${s0.x}" cy="${s0.y}" r="${fitR}" fill="#334155" stroke="#94a3b8" stroke-width="1"/>`;
+        svg.innerHTML += `<circle cx="${sEnd.x}" cy="${sEnd.y}" r="${fitR}" fill="#334155" stroke="#94a3b8" stroke-width="1"/>`;
+
+        // 4. COTAS CLARAS (COLORES ESPECÍFICOS)
+        const txtSize = strokeW * 3.5;
+        
+        function drawDim(x1, y1, x2, y2, color, label) {
+            // Linea
+            svg.innerHTML += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${strokeW/1.5}"/>`;
+            // Texto
+            const midX = (x1+x2)/2; 
+            const midY = (y1+y2)/2;
+            svg.innerHTML += `<rect x="${midX - txtSize*2}" y="${midY - txtSize/1.5}" width="${txtSize*4}" height="${txtSize*1.2}" fill="rgba(15,23,42,0.7)" rx="2"/>`;
+            svg.innerHTML += `<text x="${midX}" y="${midY + txtSize/3}" fill="${color}" font-size="${txtSize}" text-anchor="middle" font-weight="bold" font-family="monospace">${label}</text>`;
+        }
+
+        // Cota Run (Azul) - Offset un poco
+        drawDim(s0.x, s0.y + pipeStroke, sRun.x, sRun.y + pipeStroke, "#60a5fa", `R:${run}`);
+        
+        // Cota Roll (Verde)
+        if(roll > 0) {
+            drawDim(sRun.x + pipeStroke/2, sRun.y, sCorner.x + pipeStroke/2, sCorner.y, "#34d399", `D:${roll}`);
+        }
+
+        // Cota Set (Rojo)
+        drawDim(sCorner.x + pipeStroke, sCorner.y, sEnd.x + pipeStroke, sEnd.y, "#f87171", `H:${set}`);
+
+        // Etiqueta Corte Central
+        if(cut > 0) {
+            svg.innerHTML += `<rect x="${(s0.x + sEnd.x)/2 - txtSize*3}" y="${(s0.y + sEnd.y)/2 - txtSize*3}" width="${txtSize*6}" height="${txtSize*1.5}" fill="#facc15" stroke="black" rx="4"/>`;
+            svg.innerHTML += `<text x="${(s0.x + sEnd.x)/2}" y="${(s0.y + sEnd.y)/2 - txtSize*2}" fill="#000" font-size="${txtSize}" font-weight="900" text-anchor="middle" dominant-baseline="middle">CORTE: ${cut.toFixed(0)}</text>`;
         }
     }
     
     // --- HELPERS BRIDAS ETC ---
-    const dbB={"150":{"2":{od:152.4,bc:120.7,h:4},"4":{od:228.6,bc:190.5,h:8}},"300":{"4":{od:254,bc:200.2,h:8}}};
-    function getBrida(){let s=document.getElementById('brSize').value,c=document.getElementById('brClass').value,d=dbB[c][s]; if(d){document.getElementById('brRes').style.display='block';document.getElementById('brOD').innerText=d.od;document.getElementById('brBC').innerText=d.bc;document.getElementById('brH').innerText=d.h;}}
-    function calcPeso(){document.getElementById('resP').style.display='block';document.getElementById('resPVal').innerText=(16.1*document.getElementById('pL').value).toFixed(1)+" Kg";}
-    function calcCo(){let d=document.getElementById('coD').value;document.getElementById('resCo').style.display='block';document.getElementById('resCoVal').innerText=(d*38.1).toFixed(1)+" mm";}
-    
-    const sl=[{c:'#7c3aed',n:'VIOLETA',t:1},{c:'#16a34a',n:'VERDE',t:2},{c:'#facc15',n:'AMARILLO',t:3},{c:'#ef4444',n:'ROJO',t:5}];
-    document.getElementById('slingList').innerHTML=sl.map(s=>`<div class="sling-row"><div style="width:30px;height:30px;border-radius:50%;background:${s.c}"></div><div style="flex:1;font-weight:bold;color:#1e293b">${s.n}</div><div style="font-size:1.2rem;font-weight:900;color:#0f172a;">${s.t}T</div></div>`).join('');
+    const dbB={"150":{"2":{od:152.4,bc:120.7,h:4,w:27}, "4":{od:228.6,bc:190.5,h:8,w:27} }, "300": { "4":{od:254,bc:200.2,h:8,w:32} } };
+    function getBrida() {
+        let s = document.getElementById('brSize').value, c = document.getElementById('brClass').value, d = dbB[c][s];
+        if(!d) return;
+        document.getElementById('brRes').style.display='block';
+        document.getElementById('brOD').innerText = d.od; document.getElementById('brBC').innerText = d.bc;
+        document.getElementById('brH').innerText = d.h; document.getElementById('brW').innerText = d.w;
+    }
+
+    function calcPeso() {
+        let l = parseFloat(document.getElementById('pL').value);
+        document.getElementById('resP').style.display = 'block';
+        document.getElementById('resPVal').innerText = (16.1 * l).toFixed(1) + " Kg";
+    }
+
+    function calcCo() {
+        let d = parseFloat(document.getElementById('coD').value), a = parseFloat(document.getElementById('coA').value);
+        if(!d || !a) return;
+        let r = (coType === 'LR' ? d * 38.1 : d * 25.4);
+        document.getElementById('resCo').style.display = 'block';
+        document.getElementById('resCoVal').innerText = (r * Math.tan((a/2) * Math.PI / 180)).toFixed(1) + " mm";
+    }
+
+    const slings = [{c:'#7c3aed', n:'VIOLETA', t:1}, {c:'#16a34a', n:'VERDE', t:2}, {c:'#facc15', n:'AMARILLO', t:3}, {c:'#dc2626', n:'ROJO', t:5}, {c:'#2563eb', n:'AZUL', t:8}];
+    let sHtml = '';
+    slings.forEach(s => { sHtml += `<div class="sling-row"><div style="width:35px;height:35px;border-radius:10px;background:${s.c}"></div><div style="flex:1;font-weight:800;font-size:0.7rem;color:#475569;">${s.n}</div><div style="font-size:1.3rem;font-weight:900;color:#1e293b;">${s.t} T</div></div>`; });
+    document.getElementById('slingList').innerHTML = sHtml;
 </script>
 </body>
 </html>
