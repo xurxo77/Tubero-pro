@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v27.1 (PDF FRAME)</title>
+    <title>XURXO - Tubero Pro Elite v28.0 (CORTE TOTAL)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -123,14 +123,14 @@
 
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
-    <div class="splash-version">BUILD 2024 - v27.1 (FRAME FIXED)</div>
+    <div class="splash-version">BUILD 2024 - v28.0 (SCISSOR READY)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">GENERANDO PDF</div>
+    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">GENERANDO PDF DE CORTE</div>
 </div>
 
 <div class="app-container" id="capture-area">
@@ -188,7 +188,7 @@
                 
                 <div class="card" id="btns-ignore">
                     <div class="input-group"><label>Formato de Papel</label><div class="radio-group"><div class="radio-btn active" id="formatA4" onclick="setFormat('a4')">A4</div><div class="radio-btn" id="formatA3" onclick="setFormat('a3')">A3</div></div></div>
-                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">EXPORTAR PLANTILLA 1:1</button>
+                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">EXPORTAR PLANTILLA (PERFILADO)</button>
                     <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">EXPORTAR INFORME</button>
                 </div>
 
@@ -213,7 +213,7 @@
 
             <div id="resByPro" style="display:none;">
                 <div class="canvas-wrap" style="padding:10px;">
-                    <div class="canvas-label">Vista 3D Isométrica (CAD + Estructura)</div>
+                    <div class="canvas-label">Vista 3D Isométrica</div>
                     <svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:300px; box-shadow:inset 0 0 20px #0f172a;"></svg>
                 </div>
                 <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
@@ -247,7 +247,6 @@
     function setDiv(d){divBP=d;document.getElementById('div8').classList.toggle('active',d===8);document.getElementById('div16').classList.toggle('active',d===16);}
     function setCo(t){coType=t;document.getElementById('coLR').classList.toggle('active',t==='LR');document.getElementById('coSR').classList.toggle('active',t==='SR');}
 
-    // --- BOCA PEZ ---
     function calcBP(){
         let cIn=parseFloat(document.getElementById('bpC').value), rIn=parseFloat(document.getElementById('bpR').value), ang=parseFloat(document.getElementById('bpAng').value);
         let marg=document.getElementById('bpMarg').checked?30:10;
@@ -269,7 +268,6 @@
         drawJointSvg(R_cab, r_ram, ang); drawTemplateSvg();
     }
     
-    // SVG Preview
     function drawTemplateSvg(){
         let svg=document.getElementById('bpSvg'), w=400, h=160, step=w/(lastBP.pts.length-1);
         let maxVal=Math.max(...lastBP.pts), scY=(h-20)/(maxVal||1), path=`M 0 ${h}`;
@@ -278,37 +276,41 @@
         svg.innerHTML=`<rect width="400" height="160" fill="#0f172a"/><line x1="0" y1="${fajaY}" x2="400" y2="${fajaY}" stroke="#facc15" stroke-dasharray="4"/><path d="${path}" stroke="#0284c7" stroke-width="2" fill="rgba(2,132,199,0.2)"/>`;
     }
 
-    // SVG Technical View
     function drawJointSvg(R, r, ang){
         const svg = document.getElementById('jointSvg'); svg.innerHTML='';
         const angRad = ang * Math.PI / 180;
         const scale = 110 / (R * 2); 
         const scR = R * scale, scr = r * scale;
         const cx = 200, cy = 200;
-        
         let content = `<rect width="400" height="300" fill="#0f172a"/>`;
         content += `<rect x="50" y="${cy - scR}" width="300" height="${scR * 2}" fill="none" stroke="#475569" stroke-width="2" rx="2"/>`; 
         content += `<line x1="40" y1="${cy}" x2="360" y2="${cy}" stroke="#64748b" stroke-dasharray="10,5"/>`; 
-
         const len = 140;
         const vx = Math.cos(angRad), vy = -Math.sin(angRad);
-        
         content += `<line x1="${cx}" y1="${cy}" x2="${cx + len*vx}" y2="${cy + len*vy}" stroke="#facc15" stroke-dasharray="5,2" opacity="0.8"/>`;
-        
         const offX = scr * Math.sin(Math.PI/2 - angRad);
         const offY = scr * Math.cos(Math.PI/2 - angRad);
         const p1x = cx - offX, p1y = cy - offY;
         const p2x = cx + offX, p2y = cy + offY;
         const p3x = p2x + len*vx, p3y = p2y + len*vy;
         const p4x = p1x + len*vx, p4y = p1y + len*vy;
-        
         content += `<line x1="${p1x}" y1="${p1y - scR}" x2="${p4x}" y2="${p4y - scR}" stroke="#38bdf8" stroke-width="2"/>`;
         content += `<line x1="${p2x}" y1="${p2y - scR}" x2="${p3x}" y2="${p3y - scR}" stroke="#38bdf8" stroke-width="2"/>`;
         content += `<text x="${cx + 60}" y="${cy - scR - 10}" fill="#facc15" font-size="16" font-weight="bold">${ang}°</text>`;
         svg.innerHTML = content;
     }
 
-    // --- PDF FIX FINAL: MARCO DE PAPEL ---
+    // --- PDF DEFINITIVO (SCISSOR READY) ---
+    function getPointAt(x, pts) {
+        for(let i=0; i<pts.length-1; i++) {
+            if(pts[i].x <= x && pts[i+1].x >= x) {
+                let ratio = (x - pts[i].x) / (pts[i+1].x - pts[i].x);
+                return pts[i].y + (pts[i+1].y - pts[i].y) * ratio;
+            }
+        }
+        return pts[pts.length-1].y;
+    }
+
     function pdfMultiPaginado(){
         if(!lastBP.pts.length)return;
         document.getElementById('loading-overlay').style.display='flex';
@@ -316,61 +318,71 @@
             const { jsPDF } = window.jspdf; const doc=new jsPDF({orientation:'l',unit:'mm',format:exportFormat});
             
             // Recalcular puntos HD
-            let hdPts=[]; for(let i=0;i<=360;i++){
-                let phi=i*Math.PI/180;
+            let hdPts=[]; for(let i=0;i<=720;i++){
+                let phi=(i/2)*Math.PI/180;
                 let y=(Math.sqrt(Math.pow(lastBP.R_cab_mm,2)-Math.pow(lastBP.r_ram_mm*Math.sin(phi),2))/Math.sin(lastBP.angRad))-(lastBP.r_ram_mm*Math.cos(phi)/Math.tan(lastBP.angRad));
-                hdPts.push({x:(i/360)*lastBP.per,y:(y-lastBP.minY_raw)+lastBP.margin});
+                hdPts.push({x:((i/2)/360)*lastBP.per,y:(y-lastBP.minY_raw)+lastBP.margin});
             }
             
-            // Altura total del papel requerida
-            let totalHeight = Math.max(...lastBP.pts); 
-            
             let pW=(exportFormat==='a3'?420:297)-40, nP=Math.ceil(lastBP.per/pW);
+            
             for(let p=0;p<nP;p++){
                 if(p>0)doc.addPage();
                 
-                doc.setFontSize(10); doc.setTextColor(0,0,0);
-                doc.text(`PLANTILLA 1:1 - PÁG ${p+1}/${nP} (XURXO)`, 20, 15);
+                doc.setFontSize(10); doc.setTextColor(0);
+                doc.text(`PLANTILLA CORTE 1:1 - PÁG ${p+1}/${nP} (XURXO)`, 20, 15);
                 
-                let start=p*pW, end=(p+1)*pW, yBase=180;
-                let marginX = 20;
-                
-                // Calcular ancho de dibujo en esta página
-                let widthOnPage = Math.min(pW, lastBP.per - start);
+                let start=p*pW, end=(p+1)*pW, yBase=180, mX=20;
+                let currentWidth = Math.min(pW, lastBP.per - start);
 
-                // 1. MARCO DEL PAPEL (Contorno Rectangular)
-                doc.setDrawColor(0); doc.setLineWidth(0.3);
-                // Linea Base
-                doc.line(marginX, yBase, marginX + widthOnPage, yBase);
-                // Linea Superior
-                doc.line(marginX, yBase - totalHeight, marginX + widthOnPage, yBase - totalHeight);
+                // --- DIBUJO DEL CONTORNO COMPLETO ---
+                doc.setDrawColor(0); doc.setLineWidth(1.0); // Linea gruesa para tijeras
                 
-                // Cierre Izquierdo (Si es primera pagina)
-                if(p===0) doc.line(marginX, yBase, marginX, yBase - totalHeight);
-                // Cierre Derecho (Si es ultima pagina)
-                if(p===nP-1) doc.line(marginX + widthOnPage, yBase, marginX + widthOnPage, yBase - totalHeight);
+                // 1. Linea Base (Suelo)
+                doc.line(mX, yBase, mX + currentWidth, yBase);
                 
-                // Si estamos en paginas intermedias, dibujar lineas de corte lateral tambien para guiar
-                if(p>0) doc.line(marginX, yBase, marginX, yBase - totalHeight); 
-                if(p<nP-1) doc.line(marginX + widthOnPage, yBase, marginX + widthOnPage, yBase - totalHeight);
-
-                // 2. CURVA DE CORTE
-                doc.setLineWidth(1.0); // Gruesa
-                for(let i=0;i<hdPts.length-1;i++){
+                // 2. Lateral Izquierdo (Subida)
+                let hStart = getPointAt(start, hdPts);
+                doc.line(mX, yBase, mX, yBase - hStart);
+                
+                // 3. Lateral Derecho (Bajada)
+                let hEnd = getPointAt(start + currentWidth, hdPts);
+                doc.line(mX + currentWidth, yBase, mX + currentWidth, yBase - hEnd);
+                
+                // 4. Curva Superior (Techo)
+                let linesInPage = [];
+                for(let i=0; i<hdPts.length-1; i++){
                     let p1=hdPts[i], p2=hdPts[i+1];
                     if(p2.x > start && p1.x < end){
-                        let x1=(p1.x-start)+marginX, y1=yBase-p1.y;
-                        let x2=(p2.x-start)+marginX, y2=yBase-p2.y;
-                        if(x1 >= marginX-1 && x2 <= marginX+pW+1) doc.line(x1,y1,x2,y2);
+                        // Interpolar para ajustar a bordes de pagina si es necesario
+                        let x1_real = Math.max(start, p1.x);
+                        let x2_real = Math.min(end, p2.x);
+                        
+                        let y1_real = getPointAt(x1_real, hdPts);
+                        let y2_real = getPointAt(x2_real, hdPts);
+                        
+                        doc.line((x1_real-start)+mX, yBase-y1_real, (x2_real-start)+mX, yBase-y2_real);
                     }
                 }
-                
-                // 3. Faja Referencia
-                doc.setLineWidth(0.2); doc.setLineDash([3,3],0); doc.setDrawColor(100);
-                let fY = yBase - lastBP.margin;
-                doc.line(marginX, fY, marginX + widthOnPage, fY);
-                doc.text(`Ref. ${lastBP.margin}mm`, marginX+2, fY-2);
+
+                // 5. Linea de Referencia (Faja)
+                doc.setLineWidth(0.3); doc.setLineDash([2,2],0); doc.setDrawColor(100);
+                let fy = yBase - lastBP.margin;
+                doc.line(mX, fy, mX+currentWidth, fy);
+                doc.setFontSize(8); doc.text(`Ref. ${lastBP.margin}mm`, mX+2, fy-2);
                 doc.setLineDash([],0);
+                
+                // 6. Guías verticales
+                let qs = lastBP.per/4;
+                for(let q=0; q<=4; q++){
+                    let qx = q*qs;
+                    if(qx >= start && qx <= end){
+                        let px = (qx-start)+mX;
+                        doc.setDrawColor(200);
+                        doc.line(px, yBase, px, yBase-150);
+                        doc.text(`${q*90}°`, px+1, yBase-2);
+                    }
+                }
             }
             doc.save(`Plantilla_Corte_Xurxo_${lastBP.r}.pdf`); 
             document.getElementById('loading-overlay').style.display='none';
@@ -391,7 +403,6 @@
         document.getElementById('loading-overlay').style.display='none';
     }
 
-    // --- BAYONETA LOGIC (UNCHANGED) ---
     let byUnitDia='in';
     function toggleDiaUnit(u){byUnitDia=u;document.getElementById('btnDiaIn').classList.toggle('active',u==='in');document.getElementById('btnDiaMm').classList.toggle('active',u==='mm');document.getElementById('inputDiaIn').style.display=u==='in'?'block':'none';document.getElementById('inputDiaMm').style.display=u==='mm'?'block':'none';}
     function toggleRoll(){const c=document.getElementById('checkRolling').checked;document.getElementById('groupRoll').style.display=c?'block':'none';document.getElementById('byRoll').value='';}
@@ -449,7 +460,6 @@
         }
     }
 
-    // OTROS
     const dbB={"150":{"2":{od:152.4,bc:120.7,h:4,w:27},"4":{od:228.6,bc:190.5,h:8,w:27}},"300":{"4":{od:254,bc:200.2,h:8,w:32}}};
     function getBrida(){let s=document.getElementById('brSize').value,c=document.getElementById('brClass').value,d=dbB[c][s];if(d){document.getElementById('brRes').style.display='block';document.getElementById('brOD').innerText=d.od;document.getElementById('brBC').innerText=d.bc;document.getElementById('brH').innerText=d.h;document.getElementById('brW').innerText=d.w;}}
     function calcPeso(){document.getElementById('resP').style.display='block';document.getElementById('resPVal').innerText=(16.1*document.getElementById('pL').value).toFixed(1)+" Kg";}
