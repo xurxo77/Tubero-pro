@@ -4,59 +4,64 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v34.0</title>
+    <title>XURXO - Tubero Pro Elite v35.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --bg-body: #0f172a; --primary: #1e293b; --accent: #f59e0b;
             --blue-pro: #0284c7; --text-main: #334155; --text-light: #94a3b8;
-            --workshop-green: #059669; --pdf-red: #ef4444; --error-red: #b91c1c;
+            --workshop-green: #059669; --pdf-red: #ef4444;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: sans-serif; background-color: var(--bg-body); padding: 10px; display: flex; justify-content: center; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-body); color: var(--text-main); padding: 10px; display: flex; justify-content: center; }
 
-        /* SPLASH */
+        /* SPLASH SCREEN */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000; transition: opacity 0.8s; color: white; text-align: center;
+            z-index: 10000; transition: opacity 0.8s; color: white;
         }
-        .splash-logo { font-size: 3.5rem; font-weight: 900; color: var(--accent); margin-bottom: 5px; }
-        .splash-author { font-size: 1.2rem; letter-spacing: 4px; border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
+        .splash-logo { font-size: 3.5rem; font-weight: 900; color: var(--accent); letter-spacing: 5px; }
+        .splash-author { font-size: 1.2rem; font-weight: 300; letter-spacing: 4px; border-bottom: 2px solid var(--accent); padding-bottom: 5px; margin-top: 10px; }
 
-        .app-container { width: 100%; max-width: 500px; background: #f1f5f9; min-height: 98vh; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; position: relative; }
-        header { background: #1e293b; color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--accent); }
+        .app-container { width: 100%; max-width: 500px; background: #f1f5f9; min-height: 98vh; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        header { background: #1e293b; color: white; padding: 25px 15px; text-align: center; border-bottom: 4px solid var(--accent); }
         .owner-badge { background: var(--accent); color: #000; padding: 4px 15px; border-radius: 50px; font-size: 0.75rem; font-weight: 800; margin-top: 8px; display: inline-block; }
 
         .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: #1e293b; }
-        .tab-btn { background: #1e293b; border: none; color: #94a3b8; padding: 12px 5px; cursor: pointer; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
-        .tab-btn.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
+        .tab-btn { background: #1e293b; border: none; color: #94a3b8; padding: 15px 5px; cursor: pointer; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .tab-btn.active { color: var(--accent); background: #334155; border-bottom: 3px solid var(--accent); }
 
         .main-content { flex: 1; padding: 15px; overflow-y: auto; }
         .section { display: none; }
         .section.active { display: block; }
-        .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: #64748b; margin-bottom: 4px; }
-        .input-group input, .input-group select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; }
+        .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 
-        .btn-main { background: var(--blue-pro); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        .canvas-wrap { background: #0f172a; border-radius: 15px; margin-top: 15px; padding: 15px; }
-        .canvas-label { font-size: 0.65rem; color: var(--accent); font-weight: 800; margin-bottom: 8px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; font-weight: 600; }
+
+        .btn-main { background: var(--blue-pro); color: white; border: none; width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+        .btn-main:active { transform: scale(0.98); }
+
+        .canvas-wrap { background: #0f172a; border-radius: 15px; margin-top: 15px; padding: 15px; border: 1px solid #334155; }
+        .canvas-label { font-size: 0.65rem; color: var(--accent); font-weight: 800; margin-bottom: 10px; letter-spacing: 1px; }
 
         .radio-group { display: flex; gap: 8px; }
         .radio-btn { flex: 1; padding: 12px; background: #e2e8f0; border-radius: 10px; text-align: center; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
         .radio-btn.active { background: var(--blue-pro); color: white; }
 
-        #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; }
-        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .data-table td, .data-table th { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        .data-table th { background: #1e293b; color: white; padding: 10px; }
+        .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 600; }
 
+        #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; }
+        #ui-message { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 12px 20px; border-radius: 10px; font-weight: bold; z-index: 10001; display: none; }
+        
+        .switch-wrap { display: flex; align-items: center; justify-content: space-between; background: #e0f2fe; padding: 12px; border-radius: 10px; margin-bottom: 15px; cursor: pointer; }
         .pdf-exporting { overflow: visible !important; height: auto !important; }
-        #ui-message { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--error-red); color: white; padding: 10px; border-radius: 10px; z-index: 10001; display: none; }
     </style>
 </head>
 <body>
@@ -67,10 +72,14 @@
 </div>
 
 <div id="ui-message">Aviso</div>
-<div id="loading-overlay"><div style="font-size: 1.5rem; margin-bottom: 20px;">GENERANDO PDF...</div></div>
+<div id="loading-overlay"><div style="font-size: 1.5rem; font-weight: bold;">GENERANDO INFORME...</div></div>
 
 <div class="app-container" id="capture-area">
-    <header><h1>TUBERO PRO</h1><div class="owner-badge">XURXO</div></header>
+    <header>
+        <h1>TUBERO PRO</h1>
+        <div class="owner-badge">MADE BY XURXO</div>
+    </header>
+
     <nav class="nav-tabs" id="nav-ignore">
         <button class="tab-btn active" onclick="setTab('tab-bocapez', this)">Boca Pez</button>
         <button class="tab-btn" onclick="setTab('tab-bayoneta', this)">Bayoneta</button>
@@ -84,7 +93,13 @@
         <div id="tab-bocapez" class="section active">
             <h2>Injerto Boca de Pez</h2>
             <div class="card" id="form-ignore">
-                <div class="input-group"><label>Unidades</label><div class="radio-group"><div class="radio-btn active" id="unIn" onclick="setUn('in')">Pulgadas</div><div class="radio-btn" id="unMm" onclick="setUn('mm')">mm</div></div></div>
+                <div class="input-group">
+                    <label>Unidades</label>
+                    <div class="radio-group">
+                        <div class="radio-btn active" id="unIn" onclick="setUn('in')">Pulgadas</div>
+                        <div class="radio-btn" id="unMm" onclick="setUn('mm')">mm</div>
+                    </div>
+                </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
                     <div class="input-group"><label>Cabezal (OD)</label><input type="number" id="bpC" placeholder="6"></div>
                     <div class="input-group"><label>Ramal (OD)</label><input type="number" id="bpR" placeholder="4"></div>
@@ -93,46 +108,55 @@
                     <div class="input-group"><label>Ángulo (°)</label><input type="number" id="bpAng" value="90"></div>
                     <div class="input-group"><label>Divisiones</label><div class="radio-group"><div class="radio-btn active" id="div8" onclick="setDiv(8)">8</div><div class="radio-btn" id="div16" onclick="setDiv(16)">16</div></div></div>
                 </div>
-                <label style="display:flex; align-items:center; gap:10px; font-size:0.85rem; padding:10px; cursor:pointer;"><input type="checkbox" id="bpMarg"> +30mm Faja</label>
+                <label style="display:flex; align-items:center; gap:10px; font-size:0.85rem; padding:10px; cursor:pointer;"><input type="checkbox" id="bpMarg"> +30mm Faja de Papel</label>
                 <button class="btn-main" onclick="calcBP()">Calcular Trazado</button>
             </div>
+
             <div id="resBP" style="display:none">
                 <div class="card" id="btns-ignore">
-                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">PLANTILLA 1:1</button>
-                    <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">INFORME PDF</button>
+                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">PLANTILLA 1:1 (TIJERAS)</button>
+                    <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">INFORME COMPLETO PDF</button>
                 </div>
-                <div class="card" style="padding:0;"><table class="data-table" id="tableBP"><thead><tr><th>PTO</th><th>GRAD</th><th>ORD (mm)</th></tr></thead><tbody></tbody></table></div>
-                <div class="canvas-wrap"><div class="canvas-label">Esquema Plantilla</div><svg id="bpSvg" viewBox="0 0 400 160"></svg></div>
+                <div class="card" style="padding:0; overflow:hidden;"><table class="data-table" id="tableBP"><thead><tr><th>PTO</th><th>GRAD</th><th>ORD (mm)</th></tr></thead><tbody></tbody></table></div>
+                <div class="canvas-wrap"><div class="canvas-label">Visualización Plantilla</div><svg id="bpSvg" viewBox="0 0 400 160"></svg></div>
             </div>
         </div>
 
         <div id="tab-bayoneta" class="section">
-            <h2>Bayoneta Isométrica</h2>
+            <h2>Bayoneta Isométrica Profesional</h2>
             <div class="card" id="form-by-ignore">
-                <label class="switch-wrap"><span class="switch-label">GIRADA (ROLLING)</span><input type="checkbox" id="checkRolling" onchange="toggleRoll()"></label>
+                <label class="switch-wrap"><span style="font-weight: 800; color: #0369a1;">ACTIVAR ROLLING (GIRADA)</span><input type="checkbox" id="checkRolling" onchange="toggleRoll()"></label>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div class="input-group"><label>Avance (Run)</label><input type="number" id="byRun"></div>
-                    <div class="input-group"><label>Altura (Set)</label><input type="number" id="bySet"></div>
+                    <div class="input-group"><label>Avance (Run)</label><input type="number" id="byRun" placeholder="mm"></div>
+                    <div class="input-group"><label>Altura (Set)</label><input type="number" id="bySet" placeholder="mm"></div>
                 </div>
-                <div class="input-group" id="groupRoll" style="display:none;"><label>Desplazamiento (Roll)</label><input type="number" id="byRoll"></div>
-                <div class="input-group"><label>Radio</label><div class="radio-group">
+                <div class="input-group" id="groupRoll" style="display:none; background:#e0f2fe; padding:10px; border-radius:10px;"><label>Desplazamiento (Roll)</label><input type="number" id="byRoll" placeholder="mm"></div>
+                <div class="input-group"><label>Radio de Codo / Curvatura</label><div class="radio-group">
                     <div class="radio-btn active" id="byLR" onclick="setByRad('LR')">Largo</div>
                     <div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto</div>
                     <div class="radio-btn" id="byCust" onclick="setByRad('Cust')">Libre</div>
                 </div></div>
-                <div class="input-group" id="groupCustRad" style="display:none;"><input type="number" id="byRadVal" placeholder="Radio en mm"></div>
-                <button class="btn-main" onclick="calcBayonetaPro()">Calcular</button>
+                <div class="input-group" id="groupCustRad" style="display:none; background:#fff7ed; padding:10px; border-radius:10px;"><label>Radio Manual (mm)</label><input type="number" id="byRadVal" placeholder="Ej: 500"></div>
+                <button class="btn-main" onclick="calcBayonetaPro()">Calcular Bayoneta</button>
             </div>
             <div id="resByPro" style="display:none;">
-                <div class="canvas-wrap"><svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:350px;"></svg></div>
-                <div class="card"><table class="data-table">
-                    <tr><td>Ángulo</td><td id="outByAng">0°</td></tr>
-                    <tr><td>Recorrido</td><td id="outByTrav">0</td></tr>
-                    <tr style="background:#dcfce7;"><td>CARRETE</td><td id="outByCut" style="font-weight:900;">0</td></tr>
+                <div class="canvas-wrap">
+                    <div class="canvas-label">Plano Isométrico de Taller</div>
+                    <svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:380px;"></svg>
+                </div>
+                <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;"><table class="data-table">
+                    <tr><td style="text-align:left;">Ángulo Real</td><td id="outByAng" style="font-weight:900;">0°</td></tr>
+                    <tr><td style="text-align:left;">Recorrido C-C</td><td id="outByTrav" style="font-weight:bold;">0</td></tr>
+                    <tr style="background:#dcfce7;"><td style="text-align:left; font-weight:800; color:#15803d;">CARRETE (CORTE)</td><td style="font-weight:900; font-size:1.4rem; color:#15803d;" id="outByCut">0</td></tr>
                 </table></div>
-                <button class="btn-main" id="btn-inf-by" style="background:var(--pdf-red);" onclick="pdfInforme()">INFORME PDF</button>
+                <button class="btn-main" id="btn-inf-by-res" style="background:var(--pdf-red);" onclick="pdfInforme()">EXPORTAR INFORME PDF</button>
             </div>
         </div>
+
+        <div id="tab-bridas" class="section"><h2>Manual Bridas</h2><div class="card">Módulo activo</div></div>
+        <div id="tab-pesos" class="section"><h2>Pesos</h2><div class="card">Módulo activo</div></div>
+        <div id="tab-codos" class="section"><h2>Avance Codos</h2><div class="card">Módulo activo</div></div>
+        <div id="tab-cargas" class="section"><h2>Izaje</h2><div id="slingList"></div></div>
     </div>
 </div>
 
@@ -149,11 +173,12 @@
     function setDiv(d){divBP=d; document.getElementById('div8').classList.toggle('active',d===8); document.getElementById('div16').classList.toggle('active',d===16);}
     function setByRad(t){coType=t; document.getElementById('byLR').classList.toggle('active',t==='LR'); document.getElementById('bySR').classList.toggle('active',t==='SR'); document.getElementById('byCust').classList.toggle('active',t==='Cust'); document.getElementById('groupCustRad').style.display=(t==='Cust')?'block':'none';}
 
+    // --- BOCA PEZ ---
     function calcBP(){
         let cIn=parseFloat(document.getElementById('bpC').value), rIn=parseFloat(document.getElementById('bpR').value), ang=parseFloat(document.getElementById('bpAng').value), marg=document.getElementById('bpMarg').checked?30:10;
         if(!cIn||!rIn||!ang){showMsg("Faltan datos"); return;}
         let R_cab=(unitBP==='in'?getOD(cIn):cIn)/2, r_ram=(unitBP==='in'?getOD(rIn):rIn)/2, angRad=ang*Math.PI/180;
-        let per=r_ram*2*Math.PI, rawPts=[];
+        let per=r_ram*2*Math.PI, paso=per/divBP, rawPts=[];
         for(let i=0;i<=divBP;i++){
             let phi=(i*360/divBP)*Math.PI/180;
             let y=(Math.sqrt(Math.pow(R_cab,2)-Math.pow(r_ram*Math.sin(phi),2))/Math.sin(angRad))-(r_ram*Math.cos(phi)/Math.tan(angRad));
@@ -166,14 +191,12 @@
         document.getElementById('resBP').style.display='block';
         drawTemplateSvg(); drawJointSvg(R_cab, r_ram, ang);
     }
-
     function drawTemplateSvg(){
         let svg=document.getElementById('bpSvg'), w=400, h=160, step=w/(lastBP.pts.length-1);
         let maxVal=Math.max(...lastBP.pts), scY=(h-20)/(maxVal||1), path=`M 0 ${h}`;
         lastBP.pts.forEach((p,i)=> path+=` L ${i*step} ${h-(p*scY)}`); path+=` L 400 ${h} Z`;
         svg.innerHTML=`<rect width="400" height="160" fill="#0f172a"/><path d="${path}" stroke="#0284c7" stroke-width="2" fill="rgba(2,132,199,0.2)"/>`;
     }
-
     function drawJointSvg(R, r, ang){
         const svg = document.getElementById('jointSvg'); svg.innerHTML='';
         const scale = 110/(R*2), scR=R*scale, scr=r*scale, cx=200, cy=200, aRad=ang*Math.PI/180;
@@ -217,7 +240,7 @@
                     let px = d*st; if(px>=startX && px<=startX+currentW){ let xF = (px-startX)+mX; doc.line(xF, yBase, xF, yBase-getPointAt(px, hd)); doc.text(`${(d*(360/lastBP.div)).toFixed(0)}°`, xF-1, yBase+3); }
                 }
             }
-            doc.save(`Plantilla_Xurxo.pdf`); document.getElementById('loading-overlay').style.display='none';
+            doc.save("Plantilla_Corte.pdf"); document.getElementById('loading-overlay').style.display='none';
         },1000);
     }
 
@@ -225,7 +248,7 @@
         const { jsPDF } = window.jspdf; document.getElementById('loading-overlay').style.display='flex';
         const scrollEl = document.getElementById('main-scroll');
         scrollEl.classList.add('pdf-exporting');
-        const hideIds = ['nav-ignore', 'form-ignore', 'btns-ignore', 'form-by-ignore', 'btn-inf-by'];
+        const hideIds = ['nav-ignore', 'form-ignore', 'btns-ignore', 'form-by-ignore', 'btn-inf-by-res'];
         hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = 'none'; });
 
         setTimeout(async () => {
@@ -236,10 +259,10 @@
             scrollEl.classList.remove('pdf-exporting');
             hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = (id === 'nav-ignore') ? 'grid' : 'block'; });
             document.getElementById('loading-overlay').style.display='none';
-        }, 1000);
+        }, 1200);
     }
 
-    // --- BAYONETA LOGIC ---
+    // --- BAYONETAS ---
     function toggleRoll(){ document.getElementById('groupRoll').style.display=document.getElementById('checkRolling').checked?'block':'none'; }
     function calcBayonetaPro(){
         const run=parseFloat(document.getElementById('byRun').value), set=parseFloat(document.getElementById('bySet').value), isR=document.getElementById('checkRolling').checked, roll=parseFloat(document.getElementById('byRoll').value || 0);
@@ -254,32 +277,47 @@
         drawBayonetaIso(run,set,roll);
     }
 
+    // --- MOTOR ISOMÉTRICO "ISO REAL" (REVISADO) ---
     function drawBayonetaIso(r, s, ro) {
         const svg = document.getElementById('bySvg'); svg.innerHTML = '';
         function tI(p) { const a = 30 * Math.PI / 180; return { x: (p.x - p.z) * Math.cos(a), y: (p.x + p.z) * Math.sin(a) - p.y }; }
-        const s0 = tI({x:0,y:0,z:0}), sr = tI({x:r,y:0,z:0}), sc = tI({x:r,y:0,z:ro}), se = tI({x:r,y:s,z:ro});
-        const pts = [s0, sr, sc, se];
-        const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x)), minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
-        const pad = 100; svg.setAttribute("viewBox", `${minX-pad} ${minY-pad} ${maxX-minX+pad*2} ${maxY-minY+pad*2}`);
-
-        let c = `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="5,5"/>`;
-        // TUBO DIAGONAL REAL
-        c += `<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="#facc15" stroke-width="25" stroke-linecap="round"/>`;
-        c += `<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="#000" stroke-width="1" stroke-dasharray="10,5,2,5"/>`;
         
-        // COTAS
-        function dim(p1,p2,t,col,ox,oy){ return `<line x1="${p1.x+ox}" y1="${p1.y+oy}" x2="${p2.x+ox}" y2="${p2.y+oy}" stroke="${col}" stroke-width="2"/><text x="${(p1.x+p2.x)/2+ox}" y="${(p1.y+p2.y)/2+oy-10}" fill="${col}" font-weight="bold" font-size="16" text-anchor="middle">${t}</text>`; }
-        c += dim(s0,sr,`RUN: ${r}`,"#60a5fa",0,50);
-        if(ro!=0) c += dim(sr,sc,`ROLL: ${ro}`,"#34d399",40,0);
-        c += dim(sc,se,`SET: ${s}`,"#f87171",-40,0);
-        svg.innerHTML = c;
+        const pStart = { x: 0, y: 0, z: 0 };
+        const pEnd = { x: r, y: s, z: ro }; // El destino real de la tubería
+        
+        const s0 = tI(pStart), se = tI(pEnd);
+        
+        // Puntos intermedios para el cajón de referencia
+        const sr = tI({x:r, y:0, z:0}), sc = tI({x:r, y:0, z:ro});
+
+        const minX = Math.min(s0.x, se.x, sr.x, sc.x), maxX = Math.max(s0.x, se.x, sr.x, sc.x);
+        const minY = Math.min(s0.y, se.y, sr.y, sc.y), maxY = Math.max(s0.y, se.y, sr.y, sc.y);
+        const pad = 120;
+        svg.setAttribute("viewBox", `${minX - pad} ${minY - pad} ${maxX - minX + pad * 2} ${maxY - minY + pad * 2}`);
+
+        let content = `<defs><marker id="ar" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#94a3b8"/></marker></defs>`;
+        
+        // 1. CAJÓN DE REFERENCIA (Líneas finas)
+        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.4"/>`;
+        
+        // 2. TUBERÍA (Viaja por la diagonal real)
+        content += `<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="#facc15" stroke-width="25" stroke-linecap="round"/>`;
+        
+        // 3. LÍNEA DE EJE (Norma ISO)
+        content += `<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="#000" stroke-width="1" stroke-dasharray="15,4,2,4"/>`;
+
+        // 4. COTAS TÉCNICAS
+        function dim(p1, p2, val, color, offX, offY) {
+            return `<line x1="${p1.x+offX}" y1="${p1.y+offY}" x2="${p2.x+offX}" y2="${p2.y+offY}" stroke="${color}" stroke-width="1.5" marker-end="url(#ar)"/><text x="${(p1.x+p2.x)/2+offX}" y="${(p1.y+p2.y)/2+offY-10}" fill="${color}" font-size="16" font-weight="900" text-anchor="middle" font-family="monospace">${val}</text>`;
+        }
+        content += dim(s0, sr, `AVANCE: ${r}`, "#60a5fa", 0, 50);
+        if(ro != 0) content += dim(sr, sc, `DESPLAZ: ${ro}`, "#34d399", 50, 0);
+        content += dim(sc, se, `ALTURA: ${s}`, "#f87171", -50, 0);
+
+        svg.innerHTML = content;
     }
 
-    const dbB={"150":{"4":{od:228.6,bc:190.5}}};
-    function getBrida(){let s=document.getElementById('brSize').value,d=dbB["150"][s];if(d){document.getElementById('brRes').style.display='block';document.getElementById('brOD').innerText=d.od;document.getElementById('brBC').innerText=d.bc;}}
-    function calcPeso(){document.getElementById('resP').style.display='block';document.getElementById('resPVal').innerText="Cálculo estándar";}
-    function calcCo(){document.getElementById('resCo').style.display='block';document.getElementById('resCoVal').innerText="Avance estándar";}
-    document.getElementById('slingList').innerHTML=`Violeta 1T, Verde 2T, Amarillo 3T`;
+    document.getElementById('slingList').innerHTML = `Violeta 1T, Verde 2T, Amarillo 3T`;
 </script>
 </body>
 </html>
