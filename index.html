@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v30.1 (MASTER FINAL)</title>
+    <title>XURXO - Tubero Pro Elite v31.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -112,7 +112,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-        .data-table th { background: #1e293b; color: white; padding: 10px; }
+        .data-table th { background: #1e293b; color: white; padding: 10px; text-align: center; }
         .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 600; }
         
         .sling-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; background: white; padding: 12px; border-radius: 12px; }
@@ -127,14 +127,14 @@
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
     <div class="splash-author">MADE BY XURXO</div>
-    <div class="splash-version">v30.1 (MASTER FINAL)</div>
+    <div class="splash-version">BUILD 2024 - v31.0</div>
 </div>
 
 <div id="ui-message">Aviso</div>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">GENERANDO DOCUMENTO</div>
+    <div id="loading-text" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">PROCESANDO</div>
 </div>
 
 <div class="app-container" id="capture-area">
@@ -183,24 +183,27 @@
                     <div class="canvas-label">Vista Técnica de Montaje</div>
                     <svg id="jointSvg" viewBox="0 0 400 300" style="background: #0f172a;"></svg>
                 </div>
+
                 <div style="background:#eff6ff; padding:15px; border-radius:15px; margin-bottom:15px; border:2px solid #3b82f6; display:flex; justify-content: space-around; text-align: center; margin-top: 15px;">
                     <div><div style="font-size:0.65rem; color:#1e40af; font-weight:800;">PERÍMETRO</div><div id="bpPer" style="font-size:1.1rem; font-weight:900; color:#1e3a8a;">0</div></div>
                     <div style="width:1px; background:#bfdbfe;"></div>
                     <div><div style="font-size:0.65rem; color:#1e40af; font-weight:800;">PASO</div><div id="bpPas" style="font-size:1.1rem; font-weight:900; color:#1e3a8a;">0</div></div>
                 </div>
+                
                 <div class="card" id="btns-ignore">
-                    <div class="input-group"><label>Papel</label><div class="radio-group"><div class="radio-btn active" id="formatA4" onclick="setFormat('a4')">A4</div><div class="radio-btn" id="formatA3" onclick="setFormat('a3')">A3</div></div></div>
-                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">EXPORTAR PLANTILLA (PERFILADA)</button>
-                    <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">EXPORTAR INFORME</button>
+                    <div class="input-group"><label>Formato de Papel</label><div class="radio-group"><div class="radio-btn active" id="formatA4" onclick="setFormat('a4')">A4</div><div class="radio-btn" id="formatA3" onclick="setFormat('a3')">A3</div></div></div>
+                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">EXPORTAR PLANTILLA (TIJERAS)</button>
+                    <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">EXPORTAR INFORME PDF</button>
                 </div>
+
                 <div class="card" style="padding:0; overflow:hidden;"><table class="data-table" id="tableBP"><thead><tr><th>PTO</th><th>GRAD</th><th>ORD (mm)</th></tr></thead><tbody></tbody></table></div>
-                <div class="canvas-wrap"><div class="canvas-label">Plantilla Corte</div><svg id="bpSvg" viewBox="0 0 400 160"></svg></div>
+                <div class="canvas-wrap"><div class="canvas-label">Plantilla de Corte</div><svg id="bpSvg" viewBox="0 0 400 160"></svg></div>
             </div>
         </div>
 
         <div id="tab-bayoneta" class="section">
             <h2>Cálculo de Bayonetas</h2>
-            <div class="card">
+            <div class="card" id="form-by-ignore">
                 <label class="switch-wrap"><span class="switch-label">ACTIVAR GIRADA (3D / ROLLING)</span><input type="checkbox" id="checkRolling" class="switch-checkbox" onchange="toggleRoll()"></label>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div class="input-group"><label style="color:#2563eb;">Avance (Run)</label><input type="number" id="byRun" placeholder="mm"></div>
@@ -213,16 +216,22 @@
                     <div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto</div>
                     <div class="radio-btn" id="byCust" onclick="setByRad('Cust')">Libre</div>
                 </div></div>
-                <div class="input-group" id="groupCustRad" style="display:none; background:#fff7ed; padding:10px; border-radius:10px; border:1px solid var(--accent);"><label>Radio Personalizado (mm)</label><input type="number" id="byRadVal" placeholder="Ej: 500"></div>
-                <button class="btn-main" style="margin-top:15px;" onclick="calcBayonetaPro()">Calcular Trazado</button>
+                <div class="input-group" id="groupCustRad" style="display:none; background:#fff7ed; padding:10px; border-radius:10px; border:1px solid var(--accent);"><label>Radio Manual (mm)</label><input type="number" id="byRadVal" placeholder="Ej: 500"></div>
+                <button class="btn-main" style="margin-top:15px;" onclick="calcBayonetaPro()">Calcular Bayoneta</button>
             </div>
+
             <div id="resByPro" style="display:none;">
-                <div class="canvas-wrap" style="padding:10px;"><div class="canvas-label">Vista 3D Isométrica (Realista)</div><svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:300px;"></svg></div>
-                <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;"><table class="data-table">
-                    <tr><td style="text-align:left;">Ángulo Curva</td><td id="outByAng">0°</td></tr>
-                    <tr><td style="text-align:left;">Recorrido (C-C)</td><td id="outByTrav">0</td></tr>
-                    <tr style="background:#dcfce7;"><td style="text-align:left; font-weight:800;">CORTE CARRETE</td><td style="font-weight:900; font-size:1.4rem;" id="outByCut">0</td></tr>
-                </table></div>
+                <div class="canvas-wrap" style="padding:10px;">
+                    <div class="canvas-label">Vista 3D Isométrica</div>
+                    <svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:300px; box-shadow:inset 0 0 20px #0f172a;"></svg>
+                </div>
+                <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+                    <table class="data-table">
+                        <tr><td style="text-align:left; color:#166534;">Ángulo Curva</td><td style="font-weight:900; color:#166534; font-size:1.1rem;" id="outByAng">0°</td></tr>
+                        <tr><td style="text-align:left;">Recorrido (C-C)</td><td style="font-weight:bold;" id="outByTrav">0</td></tr>
+                        <tr style="background:#dcfce7;"><td style="text-align:left; font-weight:800; color:#15803d;">CARRETE (CORTE)</td><td style="font-weight:900; font-size:1.4rem; color:#15803d;" id="outByCut">0</td></tr>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -246,6 +255,7 @@
     function setDiv(d){divBP=d;document.getElementById('div8').classList.toggle('active',d===8);document.getElementById('div16').classList.toggle('active',d===16);}
     function setByRad(t){coType=t;document.getElementById('byLR').classList.toggle('active',t==='LR');document.getElementById('bySR').classList.toggle('active',t==='SR');document.getElementById('byCust').classList.toggle('active',t==='Cust');document.getElementById('groupCustRad').style.display=(t==='Cust')?'block':'none';}
 
+    // --- BOCA PEZ ---
     function calcBP(){
         let cIn=parseFloat(document.getElementById('bpC').value), rIn=parseFloat(document.getElementById('bpR').value), ang=parseFloat(document.getElementById('bpAng').value), marg=document.getElementById('bpMarg').checked?30:10;
         if(!cIn||!rIn||!ang){showMsg("Faltan datos");return;}
@@ -257,19 +267,21 @@
             rawPts.push(y);
         }
         let minY=Math.min(...rawPts), finalPts=rawPts.map(y=>(y-minY)+marg);
-        lastBP={per, r:rIn, c:cIn, pts:finalPts, unit:unitBP, paso, angle:ang, margin:marg, R_cab_mm:R_cab, r_ram_mm:r_ram, angRad, minY_raw:minY};
+        lastBP={per, r:rIn, c:cIn, pts:finalPts, unit:unitBP, paso, angle:ang, margin:marg, R_cab_mm:R_cab, r_ram_mm:r_ram, angRad, minY_raw:minY, div:divBP};
         let tb=document.querySelector("#tableBP tbody"); tb.innerHTML="";
         lastBP.pts.forEach((p,i)=>{tb.innerHTML+=`<tr><td>${i}</td><td>${(i*360/divBP).toFixed(0)}°</td><td>${p.toFixed(1)}</td></tr>`;});
         document.getElementById('resBP').style.display='block';
         document.getElementById('bpPer').innerText=per.toFixed(1); document.getElementById('bpPas').innerText=paso.toFixed(1);
         drawJointSvg(R_cab, r_ram, ang); drawTemplateSvg();
     }
+    
     function drawTemplateSvg(){
         let svg=document.getElementById('bpSvg'), w=400, h=160, step=w/(lastBP.pts.length-1);
         let maxVal=Math.max(...lastBP.pts), scY=(h-20)/(maxVal||1), path=`M 0 ${h}`;
         lastBP.pts.forEach((p,i)=>{ path+=` L ${i*step} ${h-(p*scY)}`; }); path+=` L 400 ${h} Z`;
         svg.innerHTML=`<rect width="400" height="160" fill="#0f172a"/><path d="${path}" stroke="#0284c7" stroke-width="2" fill="rgba(2,132,199,0.2)"/>`;
     }
+
     function drawJointSvg(R, r, ang){
         const svg = document.getElementById('jointSvg'); svg.innerHTML='';
         const scale = 110/(R*2), scR=R*scale, scr=r*scale, cx=200, cy=200, aRad=ang*Math.PI/180;
@@ -291,6 +303,7 @@
         return pts[pts.length-1].y;
     }
 
+    // --- PDF PLANTILLA CORREGIDA (CON DIVISIONES) ---
     function pdfMultiPaginado(){
         if(!lastBP.pts.length) return;
         document.getElementById('loading-overlay').style.display='flex';
@@ -304,51 +317,104 @@
             let pW=(exportFormat==='a3'?420:297)-40, nP=Math.ceil(lastBP.per/pW), yBase=180, mX=20;
             for(let p=0; p<nP; p++){
                 if(p>0) doc.addPage();
-                doc.text(`CORTE 1:1 - PÁG ${p+1}/${nP}`, mX, 15);
+                doc.setFontSize(10); doc.text(`PLANTILLA TIJERAS 1:1 - PÁG ${p+1}/${nP} (XURXO)`, mX, 15);
                 let startX=p*pW, currentW=Math.min(pW, lastBP.per-startX);
-                doc.setDrawColor(0); doc.setLineWidth(1.0);
+                doc.setDrawColor(0); doc.setLineWidth(0.8);
+                // Marco Scissor Ready
                 doc.line(mX, yBase, mX+currentW, yBase);
                 doc.line(mX, yBase, mX, yBase-getPointAt(startX, hd));
                 doc.line(mX+currentW, yBase, mX+currentW, yBase-getPointAt(startX+currentW, hd));
+                // Curva
                 for(let i=0; i<hd.length-1; i++){
                     if(hd[i+1].x>startX && hd[i].x<startX+pW){
                         let x1=Math.max(startX, hd[i].x), x2=Math.min(startX+pW, hd[i+1].x);
                         doc.line((x1-startX)+mX, yBase-getPointAt(x1, hd), (x2-startX)+mX, yBase-getPointAt(x2, hd));
                     }
                 }
+                // LINEAS DE DIVISION (8 o 16)
+                doc.setLineWidth(0.2); doc.setDrawColor(150);
+                let stepDiv = lastBP.per / lastBP.div;
+                for(let d=0; d<=lastBP.div; d++){
+                    let posX = d * stepDiv;
+                    if(posX >= startX && posX <= startX+currentW){
+                        let xFinal = (posX - startX) + mX;
+                        doc.line(xFinal, yBase, xFinal, yBase-getPointAt(posX, hd));
+                        doc.setFontSize(6); doc.text(`${(d*(360/lastBP.div)).toFixed(0)}°`, xFinal-1, yBase+3);
+                    }
+                }
             }
-            doc.save("Plantilla_Corte.pdf"); document.getElementById('loading-overlay').style.display='none';
+            doc.save(`Plantilla_Xurxo_${lastBP.r}.pdf`); document.getElementById('loading-overlay').style.display='none';
         },1000);
     }
 
+    // --- EXPORTAR INFORME REAL ---
+    async function pdfInforme(){
+        const { jsPDF } = window.jspdf;
+        document.getElementById('loading-overlay').style.display='flex';
+        document.getElementById('loading-text').innerText = "CAPTURANDO INFORME...";
+        
+        // Ocultar botones e inputs para que el PDF sea limpio
+        const hideList = ['nav-ignore', 'form-ignore', 'btns-ignore', 'form-by-ignore'];
+        hideList.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = 'none'; });
+
+        setTimeout(async () => {
+            const canvas = await html2canvas(document.getElementById('capture-area'), { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfW = pdf.internal.pageSize.getWidth();
+            const pdfH = (canvas.height * pdfW) / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
+            pdf.save(`Informe_Tubero_Xurxo.pdf`);
+
+            // Restaurar visibilidad
+            hideList.forEach(id => { 
+                if(document.getElementById(id)) {
+                    document.getElementById(id).style.display = (id === 'nav-ignore') ? 'grid' : 'block';
+                }
+            });
+            document.getElementById('loading-overlay').style.display='none';
+        }, 500);
+    }
+
+    // --- BAYONETA LOGIC (3D + LIBRE) ---
+    let byUnitDia='in';
+    function toggleDiaUnit(u){byUnitDia=u;document.getElementById('btnDiaIn').classList.toggle('active',u==='in');document.getElementById('btnDiaMm').classList.toggle('active',u==='mm');document.getElementById('inputDiaIn').style.display=u==='in'?'block':'none';document.getElementById('inputDiaMm').style.display=u==='mm'?'block':'none';}
+    function toggleRoll(){const c=document.getElementById('checkRolling').checked;document.getElementById('groupRoll').style.display=c?'block':'none';document.getElementById('byRoll').value='';}
+    
     function calcBayonetaPro(){
         const run=parseFloat(document.getElementById('byRun').value), set=parseFloat(document.getElementById('bySet').value), isR=document.getElementById('checkRolling').checked, roll=parseFloat(document.getElementById('byRoll').value);
-        let effS=isR?Math.sqrt(set*set+roll*roll):set, dB=(unitBP==='in'?getOD(document.getElementById('byDiaSel').value):parseFloat(document.getElementById('byDiaInp').value));
+        let effS=isR?Math.sqrt(set*set+roll*roll):set, dB=(byUnitDia==='in'?getOD(document.getElementById('byDiaSel').value):parseFloat(document.getElementById('byDiaInp').value));
         let rad=(coType==='LR')?dB*1.5:(coType==='SR'?dB:parseFloat(document.getElementById('byRadVal').value));
+        if(!rad){showMsg("Falta Radio"); return;}
         const travel=Math.sqrt(run*run+effS*effS), angR=Math.atan(effS/run), ded=rad*Math.tan(angR/2)*2, cut=travel-ded;
         document.getElementById('resByPro').style.display='block';
         document.getElementById('outByAng').innerText=(angR*180/Math.PI).toFixed(1)+"°";
-        document.getElementById('outByTrav').innerText=travel.toFixed(1);
-        document.getElementById('outByCut').innerText=cut<0?"IMP":cut.toFixed(1);
+        document.getElementById('outByTrav').innerText=travel.toFixed(1) + " mm";
+        document.getElementById('outByCut').innerText=cut<0?"IMP":cut.toFixed(1) + " mm";
         drawBayonetaIso(run,set,isR?roll:0,cut,angR*180/Math.PI);
     }
+
     function drawBayonetaIso(r,s,ro,cu,an){
         const svg=document.getElementById('bySvg'); svg.innerHTML='';
-        const p0={x:0,y:0,z:0}, pR={x:r,y:0,z:0}, pC={x:r,y:0,z:ro}, pE={x:r,y:s,z:ro};
         function tI(p){ const a=30*Math.PI/180; return {x:(p.x-p.z)*Math.cos(a), y:(p.x+p.z)*Math.sin(a)-p.y}; }
-        const s0=tI(p0), sr=tI(pR), sc=tI(pC), se=tI(pE), pts=[s0,sr,sc,se];
-        const minX=Math.min(...pts.map(p=>p.x)), maxX=Math.max(...pts.map(p=>p.x)), minY=Math.min(...pts.map(p=>p.y)), maxY=Math.max(...pts.map(p=>p.y));
-        const w=maxX-minX, h=maxY-minY, pad=Math.max(w,h)*0.5+40;
-        svg.setAttribute("viewBox", `${minX-pad} ${minY-pad} ${w+pad*2} ${h+pad*2}`);
+        const s0=tI({x:0,y:0,z:0}), sr=tI({x:r,y:0,z:0}), sc=tI({x:r,y:0,z:ro}), se=tI({x:r,y:s,z:ro});
+        const pad=100;
+        svg.setAttribute("viewBox", `-200 -200 600 600`);
         let l=`<line x1="${s0.x}" y1="${s0.y}" x2="${sr.x}" y2="${sr.y}" stroke="#475569" stroke-dasharray="5" opacity="0.5"/>`;
         l+=`<line x1="${sr.x}" y1="${sr.y}" x2="${sc.x}" y2="${sc.y}" stroke="#475569" stroke-dasharray="5" opacity="0.5"/>`;
         l+=`<line x1="${sc.x}" y1="${sc.y}" x2="${se.x}" y2="${se.y}" stroke="#475569" stroke-dasharray="5" opacity="0.5"/>`;
-        const pS=15;
-        l+=`<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="#facc15" stroke-width="${pS}" stroke-linecap="round"/>`;
+        l+=`<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="black" stroke-width="18" stroke-linecap="round" opacity="0.3" transform="translate(4,4)"/>`;
+        l+=`<line x1="${s0.x}" y1="${s0.y}" x2="${se.x}" y2="${se.y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
         svg.innerHTML=l;
     }
+
+    const dbB={"150":{"4":{od:228.6,bc:190.5}},"300":{"4":{od:254,bc:200}}};
+    function getBrida(){let s=document.getElementById('brSize').value,c="150",d=dbB[c][s];if(d){document.getElementById('brRes').style.display='block';document.getElementById('brOD').innerText=d.od;document.getElementById('brBC').innerText=d.bc;}}
+    function calcPeso(){document.getElementById('resP').style.display='block';document.getElementById('resPVal').innerText=(16.1*document.getElementById('pL').value).toFixed(1)+" Kg";}
+    function calcCo(){let d=document.getElementById('coD').value;document.getElementById('resCo').style.display='block';document.getElementById('resCoVal').innerText=(d*38.1).toFixed(1)+" mm";}
     const sl=[{c:'#7c3aed',n:'VIOLETA',t:1},{c:'#16a34a',n:'VERDE',t:2},{c:'#facc15',n:'AMARILLO',t:3},{c:'#dc2626',n:'ROJO',t:5},{c:'#2563eb',n:'AZUL',t:8}];
-    document.getElementById('slingList').innerHTML=sl.map(s=>`<div class="sling-row"><div style="width:30px;height:30px;background:${s.c}"></div><div>${s.n} - ${s.t}T</div></div>`).join('');
+    document.getElementById('slingList').innerHTML=sl.map(s=>`<div class="sling-row"><div style="width:30px;height:30px;background:${s.c};border-radius:5px;"></div><div style="font-weight:bold;">${s.n} - ${s.t}T</div></div>`).join('');
 </script>
 </body>
 </html>
