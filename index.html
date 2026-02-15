@@ -381,7 +381,7 @@
 
         <!-- BAYONETAS -->
        <div id="tab-bayoneta" class="section">
-    <h2>Cálculo de Bayonetas (Desviaciones)</h2>
+    <h2>Cálculo de Bayonetas</h2>
     <div class="card">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
             <div class="input-group">
@@ -389,15 +389,19 @@
                 <input type="number" id="byRun" placeholder="mm">
             </div>
             <div class="input-group">
-                <label>Desviación (Set)</label>
-                <input type="number" id="bySet" placeholder="mm">
+                <label>Altura (Set)</label> <input type="number" id="bySet" placeholder="mm">
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div class="input-group">
-                <label>Diámetro (NPS)</label>
-                <select id="byDia">
+        <div class="input-group">
+            <label>Unidad Diámetro</label>
+            <div class="radio-group" style="margin-bottom:10px;">
+                <div class="radio-btn active" id="btnDiaIn" onclick="toggleDiaUnit('in')">Pulgadas (")</div>
+                <div class="radio-btn" id="btnDiaMm" onclick="toggleDiaUnit('mm')">Milímetros (mm)</div>
+            </div>
+            
+            <div id="inputDiaIn">
+                <select id="byDiaSel" style="background:#fff;">
                     <option value="2">2"</option>
                     <option value="3">3"</option>
                     <option value="4" selected>4"</option>
@@ -405,14 +409,20 @@
                     <option value="8">8"</option>
                     <option value="10">10"</option>
                     <option value="12">12"</option>
+                    <option value="14">14"</option>
+                    <option value="16">16"</option>
                 </select>
             </div>
-            <div class="input-group">
-                <label>Radio Codo</label>
-                <div class="radio-group">
-                    <div class="radio-btn active" id="byLR" onclick="setByRad('LR')">Largo</div>
-                    <div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto</div>
-                </div>
+            <div id="inputDiaMm" style="display:none;">
+                <input type="number" id="byDiaInp" placeholder="Ej: 100 (para DN100)" style="background:#fff;">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Radio Codo</label>
+            <div class="radio-group">
+                <div class="radio-btn active" id="byLR" onclick="setByRad('LR')">Largo (x1.5)</div>
+                <div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto (x1.0)</div>
             </div>
         </div>
 
@@ -420,9 +430,9 @@
     </div>
 
     <div id="resByPro" style="display:none;">
-        <div class="canvas-wrap">
+        <div class="canvas-wrap" style="padding:10px;">
             <div class="canvas-label">Esquema de Montaje</div>
-            <svg id="bySvg" viewBox="0 0 300 150" style="background:#0f172a; border-radius:10px;"></svg>
+            <svg id="bySvg" style="width:100%; height:auto; background:#0f172a; border-radius:10px; min-height:200px;"></svg>
         </div>
 
         <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
@@ -696,8 +706,9 @@
         }, 800);
     }
 
-    // --- LÓGICA MEJORADA DE BAYONETA (NUEVA) ---
+ // --- LÓGICA MEJORADA DE BAYONETA (VERSIÓN 2.0) ---
     let byType = 'LR'; // Radio Largo por defecto
+    let byUnitDia = 'in'; // Unidad defecto
 
     function setByRad(t) {
         byType = t;
@@ -705,25 +716,41 @@
         document.getElementById('bySR').classList.toggle('active', t === 'SR');
     }
 
+    function toggleDiaUnit(u) {
+        byUnitDia = u;
+        document.getElementById('btnDiaIn').classList.toggle('active', u === 'in');
+        document.getElementById('btnDiaMm').classList.toggle('active', u === 'mm');
+        document.getElementById('inputDiaIn').style.display = (u === 'in') ? 'block' : 'none';
+        document.getElementById('inputDiaMm').style.display = (u === 'mm') ? 'block' : 'none';
+    }
+
     function calcBayonetaPro() {
         const run = parseFloat(document.getElementById('byRun').value);
         const set = parseFloat(document.getElementById('bySet').value);
-        const nps = document.getElementById('byDia').value;
         
-        if (!run || !set) { showMsg("Introduce Avance y Desviación"); return; }
+        // Obtener diámetro base según la unidad seleccionada
+        let diameterBase = 0;
+        if (byUnitDia === 'in') {
+            diameterBase = parseFloat(document.getElementById('byDiaSel').value) * 25.4; // Pulgadas a mm
+        } else {
+            diameterBase = parseFloat(document.getElementById('byDiaInp').value); // Ya está en mm
+        }
+        
+        if (!run || !set || !diameterBase) { showMsg("Faltan datos (Avance, Altura o Diámetro)"); return; }
 
+        // Cálculos
         const travel = Math.sqrt(Math.pow(run, 2) + Math.pow(set, 2));
         const angleRad = Math.atan(set / run);
         const angleDeg = angleRad * (180 / Math.PI);
 
-        const nominalMM = nps * 25.4; 
-        const radius = (byType === 'LR') ? (nominalMM * 1.5) : (nominalMM * 1.0);
+        // Radio del codo (Largo = 1.5D, Corto = 1.0D)
+        const radius = (byType === 'LR') ? (diameterBase * 1.5) : (diameterBase * 1.0);
         
         const elbowAdv = radius * Math.tan(angleRad / 2);
         const totalDeduct = elbowAdv * 2; 
-
         const cutLength = travel - totalDeduct;
 
+        // Mostrar Resultados
         document.getElementById('resByPro').style.display = 'block';
         document.getElementById('outByAng').innerText = angleDeg.toFixed(1) + "°";
         document.getElementById('outByTrav').innerText = travel.toFixed(1) + " mm";
@@ -739,66 +766,89 @@
             cutElem.style.color = "#15803d";
         }
 
-        drawBayonetaSvg(run, set, cutLength, angleDeg);
+        // Llamada al dibujo responsive
+        drawBayonetaSvgResponsive(run, set, cutLength, angleDeg);
     }
 
-    function drawBayonetaSvg(run, set, cut, ang) {
+    function drawBayonetaSvgResponsive(run, set, cut, ang) {
         const svg = document.getElementById('bySvg');
-        svg.innerHTML = '';
+        svg.innerHTML = ''; // Limpiar
 
-        const margin = 40; 
-        const w = 300, h = 150;
-        const maxDim = Math.max(run, set);
-        if(maxDim === 0) return;
+        // Definir márgenes lógicos (en unidades del dibujo)
+        const margin = Math.max(run, set) * 0.15 + 40; // Margen dinámico + base fija
         
-        const sc = (Math.min(w, h) - margin * 2) / maxDim; 
-        
-        const x0 = margin;          
-        const y0 = h - margin;      
-        const x1 = x0 + (run * sc); 
-        const y1 = y0 - (set * sc); 
+        // Coordenadas lógicas
+        const xStart = 0;
+        const yStart = 0; // Eje Y invertido visualmente en SVG, pero calculamos normal y luego ajustamos
+        const xEnd = run;
+        const yEnd = -set; // Negativo porque en SVG Y crece hacia abajo
 
+        // Calcular ViewBox (La caja que encuadra todo el dibujo)
+        // xMin, yMin, width, height
+        const vbX = -margin;
+        const vbY = -set - margin; // Arriba del todo
+        const vbW = run + (margin * 2);
+        const vbH = set + (margin * 2);
+
+        // Asignar ViewBox para Zoom Automático
+        svg.setAttribute("viewBox", `${vbX} ${vbY} ${vbW} ${vbH}`);
+
+        // --- DIBUJO ---
+        
         let defs = `<defs>
-            <marker id="arrowHead" markerWidth="6" markerHeight="6" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
-                <path d="M0,0 L0,6 L5,3 z" fill="#64748b" />
-            </marker>
-            <marker id="arrowStart" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
-                <path d="M5,0 L5,6 L0,3 z" fill="#64748b" />
+            <marker id="arrowHead" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,4 L4,2 z" fill="#64748b" />
             </marker>
         </defs>`;
         svg.innerHTML += defs;
 
-        svg.innerHTML += `<line x1="${x0-20}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="#94a3b8" stroke-dasharray="4,2" stroke-width="1"/>`;
-        svg.innerHTML += `<line x1="${x1}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#94a3b8" stroke-dasharray="4,2" stroke-width="1"/>`;
-        svg.innerHTML += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#cbd5e1" stroke-dasharray="2" stroke-width="1"/>`;
+        // 1. Líneas Guía (Ejes)
+        // Horizontal Inferior
+        svg.innerHTML += `<line x1="${-20}" y1="0" x2="${run}" y2="0" stroke="#94a3b8" stroke-dasharray="10,5" vector-effect="non-scaling-stroke" stroke-width="1"/>`;
+        // Vertical Derecha
+        svg.innerHTML += `<line x1="${run}" y1="0" x2="${run}" y2="${-set}" stroke="#94a3b8" stroke-dasharray="10,5" vector-effect="non-scaling-stroke" stroke-width="1"/>`;
+        // Diagonal (Travel)
+        svg.innerHTML += `<line x1="0" y1="0" x2="${run}" y2="${-set}" stroke="#cbd5e1" stroke-dasharray="5,5" vector-effect="non-scaling-stroke" stroke-width="1"/>`;
 
-        const pipeW = 6; 
-        const pipeColor = (cut < 0) ? "#ef4444" : "#facc15";
+        // 2. Tubería (Gruesa)
+        // Grosor relativo al tamaño del dibujo para que no se vea ni muy fina ni muy gorda
+        const pipeW = Math.max(run, set) * 0.02 + 2; 
+        const pipeColor = (cut < 0) ? "#ef4444" : "#facc15"; // Rojo error, Amarillo ok
         
-        svg.innerHTML += `<path d="M ${x0-20} ${y0} L ${x0} ${y0} L ${x1} ${y1} L ${x1+20} ${y1}" 
+        // Camino simplificado (Visual)
+        svg.innerHTML += `<path d="M ${-margin/2} 0 L 0 0 L ${run} ${-set} L ${run + margin/2} ${-set}" 
             fill="none" stroke="${pipeColor}" stroke-width="${pipeW}" stroke-linejoin="round" stroke-linecap="round"/>`;
 
-        svg.innerHTML += `<line x1="${x0}" y1="${y0+15}" x2="${x1}" y2="${y0+15}" stroke="#64748b" stroke-width="1" marker-end="url(#arrowHead)" marker-start="url(#arrowStart)"/>`;
-        svg.innerHTML += `<line x1="${x0}" y1="${y0+2}" x2="${x0}" y2="${y0+20}" stroke="#64748b" stroke-width="0.5"/>`; 
-        svg.innerHTML += `<line x1="${x1}" y1="${y0+2}" x2="${x1}" y2="${y0+20}" stroke="#64748b" stroke-width="0.5"/>`; 
-        svg.innerHTML += `<text x="${(x0+x1)/2}" y="${y0+28}" fill="#475569" font-size="9" text-anchor="middle" font-weight="bold">AVANCE: ${run}</text>`;
+        // 3. Cotas (Dimensiones) - Adaptadas
+        const distCota = margin * 0.4;
+        
+        // Cota Avance (Abajo)
+        svg.innerHTML += `<line x1="0" y1="${distCota}" x2="${run}" y2="${distCota}" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="1.5" marker-end="url(#arrowHead)"/>`;
+        svg.innerHTML += `<line x1="0" y1="${distCota}" x2="0" y2="0" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
+        svg.innerHTML += `<line x1="${run}" y1="${distCota}" x2="${run}" y2="0" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
+        
+        // Texto Avance (Escalado para que no sea gigante ni diminuto)
+        const textSize = Math.max(run, set) * 0.05 + 5; 
+        svg.innerHTML += `<text x="${run/2}" y="${distCota + textSize}" fill="#475569" font-size="${textSize}" text-anchor="middle" font-weight="bold">AVANCE: ${run}</text>`;
 
-        svg.innerHTML += `<line x1="${x1+15}" y1="${y0}" x2="${x1+15}" y2="${y1}" stroke="#64748b" stroke-width="1" marker-end="url(#arrowHead)" marker-start="url(#arrowStart)"/>`;
-        svg.innerHTML += `<line x1="${x1+2}" y1="${y0}" x2="${x1+20}" y2="${y0}" stroke="#64748b" stroke-width="0.5"/>`; 
-        svg.innerHTML += `<line x1="${x1+2}" y1="${y1}" x2="${x1+20}" y2="${y1}" stroke="#64748b" stroke-width="0.5"/>`; 
-        svg.innerHTML += `<text x="${x1+25}" y="${(y0+y1)/2}" fill="#475569" font-size="9" text-anchor="middle" font-weight="bold" transform="rotate(-90, ${x1+25}, ${(y0+y1)/2})">SET: ${set}</text>`;
+        // Cota Altura (Derecha)
+        svg.innerHTML += `<line x1="${run + distCota}" y1="0" x2="${run + distCota}" y2="${-set}" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="1.5" marker-end="url(#arrowHead)"/>`;
+        svg.innerHTML += `<line x1="${run + distCota}" y1="0" x2="${run}" y2="0" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
+        svg.innerHTML += `<line x1="${run + distCota}" y1="${-set}" x2="${run}" y2="${-set}" stroke="#64748b" vector-effect="non-scaling-stroke" stroke-width="0.5"/>`;
+        
+        // Texto Altura (Rotado)
+        svg.innerHTML += `<text x="${run + distCota + textSize}" y="${-set/2}" fill="#475569" font-size="${textSize}" text-anchor="middle" font-weight="bold" transform="rotate(-90, ${run + distCota + textSize}, ${-set/2})">ALTURA: ${set}</text>`;
 
+        // 4. Ángulo
         if (run > 0 && set > 0) {
-            const arcR = 30;
-            svg.innerHTML += `<text x="${x0 + arcR + 5}" y="${y0 - 5}" fill="#2563eb" font-size="10" font-weight="bold">${ang.toFixed(1)}°</text>`;
+            svg.innerHTML += `<text x="${textSize*2}" y="${-textSize/2}" fill="#2563eb" font-size="${textSize}" font-weight="bold">${ang.toFixed(1)}°</text>`;
         }
 
+        // 5. Etiqueta Corte
         if (cut > 0) {
-            svg.innerHTML += `<rect x="${(x0+x1)/2 - 25}" y="${(y0+y1)/2 - 8}" width="50" height="16" rx="4" fill="#0f172a" opacity="0.8"/>`;
-            svg.innerHTML += `<text x="${(x0+x1)/2}" y="${(y0+y1)/2 + 4}" fill="#facc15" font-size="10" text-anchor="middle" font-weight="bold">L=${cut.toFixed(0)}</text>`;
+            svg.innerHTML += `<text x="${run/2}" y="${-set/2 - textSize}" fill="#facc15" font-size="${textSize}" text-anchor="middle" font-weight="bold" stroke="#000" stroke-width="0.5" paint-order="stroke">CORTE = ${cut.toFixed(0)}</text>`;
         }
     }
-
     // --- OTROS CÁLCULOS (Bridas, Pesos, Codos, Eslingas) ---
     const dbB = { "150": { "2":{od:152.4,bc:120.7,h:4,w:27}, "4":{od:228.6,bc:190.5,h:8,w:27} }, "300": { "4":{od:254,bc:200.2,h:8,w:32} } };
     function getBrida() {
@@ -830,6 +880,7 @@
 </script>
 </body>
 </html> 
+
 
 
 
