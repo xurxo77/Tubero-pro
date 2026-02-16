@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v35.1</title>
+    <title>XURXO - Tubero Pro Elite v35.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -13,46 +13,105 @@
             --blue-pro: #0284c7; --text-main: #334155; --text-light: #94a3b8;
             --workshop-green: #059669; --pdf-red: #ef4444; --error-red: #b91c1c;
         }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-body); color: var(--text-main); padding: 10px; display: flex; justify-content: center; }
 
-        /* SPLASH */
-        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; transition: opacity 0.8s; color: white; }
-        .splash-logo { font-size: 3.5rem; font-weight: 900; color: var(--accent); letter-spacing: 5px; }
-        .splash-author { font-size: 1.2rem; font-weight: 300; letter-spacing: 4px; border-bottom: 2px solid var(--accent); padding-bottom: 5px; margin-top: 10px; }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
 
-        .app-container { width: 100%; max-width: 500px; background: #f1f5f9; min-height: 98vh; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        header { background: #1e293b; color: white; padding: 25px 15px; text-align: center; border-bottom: 4px solid var(--accent); }
-        .owner-badge { background: var(--accent); color: #000; padding: 4px 15px; border-radius: 50px; font-size: 0.75rem; font-weight: 800; margin-top: 8px; display: inline-block; }
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10000; transition: opacity 0.8s ease, visibility 0.8s; color: white; text-align: center;
+        }
+        .splash-logo { font-size: 3.5rem; font-weight: 900; letter-spacing: 5px; color: var(--accent); margin-bottom: 5px; }
+        .splash-author {
+            font-size: 1.2rem; font-weight: 300; letter-spacing: 4px; color: #cbd5e1;
+            text-transform: uppercase; margin-bottom: 30px; border-bottom: 2px solid var(--accent);
+            padding-bottom: 5px; display: inline-block;
+        }
 
-        .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: #1e293b; }
-        .tab-btn { background: #1e293b; border: none; color: #94a3b8; padding: 15px 5px; cursor: pointer; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        /* --- APP CONTAINER --- */
+        .app-container {
+            width: 100%; max-width: 500px; background: #f1f5f9; min-height: 98vh; border-radius: 20px;
+            overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.5); position: relative;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 25px 15px;
+            text-align: center; border-bottom: 4px solid var(--accent);
+        }
+
+        .owner-badge {
+            background: var(--accent); color: #000; padding: 4px 15px; border-radius: 50px;
+            font-size: 0.75rem; font-weight: 800; display: inline-block; margin-top: 8px; text-transform: uppercase;
+        }
+
+        #ui-message {
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--error-red);
+            color: white; padding: 12px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: bold;
+            z-index: 10000; display: none; width: 90%; text-align: center;
+        }
+
+        .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: #1e293b; gap: 1px; }
+        .tab-btn {
+            background: #1e293b; border: none; color: #94a3b8; padding: 12px 5px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; transition: 0.3s;
+        }
+        .tab-btn svg { width: 18px; height: 18px; fill: currentColor; margin-bottom: 4px; }
         .tab-btn.active { color: var(--accent); background: #334155; border-bottom: 3px solid var(--accent); }
 
         .main-content { flex: 1; padding: 15px; overflow-y: auto; }
         .section { display: none; }
         .section.active { display: block; }
-        .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 12px; border-left: 4px solid var(--accent); padding-left: 10px; }
+
+        .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 
         .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase; }
         .input-group input, .input-group select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; font-weight: 600; }
 
-        .btn-main { background: var(--blue-pro); color: white; border: none; width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
-        .canvas-wrap { background: #0f172a; border-radius: 15px; margin-top: 15px; padding: 15px; border: 1px solid #334155; }
-        .canvas-label { font-size: 0.65rem; color: var(--accent); font-weight: 800; margin-bottom: 10px; letter-spacing: 1px; }
+        .btn-main {
+            background: var(--blue-pro); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px;
+            font-weight: 700; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+
+        .canvas-wrap {
+            background: #0f172a; border-radius: 15px; margin-top: 15px; padding: 15px; overflow: hidden; border: 1px solid #334155;
+        }
+        .canvas-label { font-size: 0.65rem; color: var(--accent); font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
 
         .radio-group { display: flex; gap: 8px; }
         .radio-btn { flex: 1; padding: 12px; background: #e2e8f0; border-radius: 10px; text-align: center; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
         .radio-btn.active { background: var(--blue-pro); color: white; }
 
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-        .data-table th { background: #1e293b; color: white; padding: 10px; }
-        .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 600; }
+        #loading-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; text-align: center; padding: 20px;
+        }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; }
-        #ui-message { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 12px 20px; border-radius: 10px; font-weight: bold; z-index: 10001; display: none; }
-        .switch-wrap { display: flex; align-items: center; justify-content: space-between; background: #e0f2fe; padding: 12px; border-radius: 10px; margin-bottom: 15px; cursor: pointer; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        .data-table th { background: #1e293b; color: white; padding: 10px; text-align: center; }
+        .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 600; }
+        
+        .switch-wrap { display: flex; align-items: center; justify-content: space-between; background: #e0f2fe; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #bae6fd; cursor: pointer; }
+        .switch-label { font-weight: 700; color: #0369a1; font-size: 0.85rem; text-transform: uppercase; }
+        .switch-checkbox { width: 20px; height: 20px; accent-color: var(--blue-pro); }
+
         .pdf-exporting { overflow: visible !important; height: auto !important; }
     </style>
 </head>
@@ -61,28 +120,43 @@
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
     <div class="splash-author">MADE BY XURXO</div>
+    <div class="splash-version">v35.0 (RAIL EDITION)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
-<div id="loading-overlay"><div style="font-size: 1.5rem; font-weight: bold;">GENERANDO INFORME...</div></div>
+
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loading-text" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">PROCESANDO</div>
+</div>
 
 <div class="app-container" id="capture-area">
-    <header><h1>TUBERO PRO</h1><div class="owner-badge">MADE BY XURXO</div></header>
+    <header>
+        <h1>TUBERO PRO</h1>
+        <div class="owner-badge">OFICIAL: XURXO</div>
+    </header>
 
     <nav class="nav-tabs" id="nav-ignore">
-        <button class="tab-btn active" onclick="setTab('tab-bocapez', this)">Boca Pez</button>
-        <button class="tab-btn" onclick="setTab('tab-bayoneta', this)">Bayoneta</button>
-        <button class="tab-btn" onclick="setTab('tab-bridas', this)">Bridas</button>
-        <button class="tab-btn" onclick="setTab('tab-pesos', this)">Pesos</button>
-        <button class="tab-btn" onclick="setTab('tab-codos', this)">Codos</button>
-        <button class="tab-btn" onclick="setTab('tab-cargas', this)">Izaje</button>
+        <button class="tab-btn active" onclick="setTab('tab-bocapez', this)"><svg viewBox="0 0 24 24"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z"/></svg>Boca Pez</button>
+        <button class="tab-btn" onclick="setTab('tab-bayoneta', this)"><svg viewBox="0 0 24 24"><path d="M21,16.5L12,21.5L3,16.5V7.5L12,2.5L21,7.5V16.5Z"/></svg>Bayoneta</button>
+        <button class="tab-btn" onclick="setTab('tab-bridas', this)"><svg viewBox="0 0 24 24"><path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5Z"/></svg>Bridas</button>
+        <button class="tab-btn" onclick="setTab('tab-pesos', this)"><svg viewBox="0 0 24 24"><path d="M12,3L1,9L12,15L21,10V17H23V9M5,13V17L12,21L19,17V13L12,17L5,13Z"/></svg>Pesos</button>
+        <button class="tab-btn" onclick="setTab('tab-codos', this)"><svg viewBox="0 0 24 24"><path d="M19,15V19H5V5H9V3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V15H19M16,3H21V8H19V6.4L11.9,13.5L10.5,12.1L17.6,5H16V3Z"/></svg>Codos</button>
+        <button class="tab-btn" onclick="setTab('tab-cargas', this)"><svg viewBox="0 0 24 24"><path d="M13,10H18L12,16L6,10H11V3H13V10M4,19H20V21H4V19Z"/></svg>Izaje</button>
     </nav>
 
     <div class="main-content" id="main-scroll">
+        
         <div id="tab-bocapez" class="section active">
             <h2>Injerto Boca de Pez</h2>
             <div class="card" id="form-ignore">
-                <div class="input-group"><label>Unidades</label><div class="radio-group"><div class="radio-btn active" id="unIn" onclick="setUn('in')">Pulgadas</div><div class="radio-btn" id="unMm" onclick="setUn('mm')">mm</div></div></div>
+                <div class="input-group">
+                    <label>Unidades</label>
+                    <div class="radio-group">
+                        <div class="radio-btn active" id="unIn" onclick="setUn('in')">Pulgadas</div>
+                        <div class="radio-btn" id="unMm" onclick="setUn('mm')">mm</div>
+                    </div>
+                </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
                     <div class="input-group"><label>Cabezal (OD)</label><input type="number" id="bpC" placeholder="6"></div>
                     <div class="input-group"><label>Ramal (OD)</label><input type="number" id="bpR" placeholder="4"></div>
@@ -91,13 +165,21 @@
                     <div class="input-group"><label>Ángulo (°)</label><input type="number" id="bpAng" value="90"></div>
                     <div class="input-group"><label>Divisiones</label><div class="radio-group"><div class="radio-btn active" id="div8" onclick="setDiv(8)">8</div><div class="radio-btn" id="div16" onclick="setDiv(16)">16</div></div></div>
                 </div>
-                <label style="display:flex; align-items:center; gap:10px; font-size:0.85rem; padding:10px; cursor:pointer;"><input type="checkbox" id="bpMarg"> +30mm Faja</label>
-                <button class="btn-main" onclick="calcBP()">Calcular Trazado</button>
+                <label style="display:flex; align-items:center; gap:10px; font-size:0.85rem; background:#fff7ed; padding:12px; border-radius:10px; border:1px solid #ffedd5; color:#9a3412; cursor:pointer;">
+                    <input type="checkbox" id="bpMarg" style="width:18px; height:18px;"> +30mm Faja de Papel
+                </label>
+                <button class="btn-main" style="margin-top:15px;" onclick="calcBP()">Calcular Trazado</button>
             </div>
+
             <div id="resBP" style="display:none">
+                <div class="canvas-wrap">
+                    <div class="canvas-label">Vista Técnica de Montaje</div>
+                    <svg id="jointSvg" viewBox="0 0 400 300" style="background: #0f172a;"></svg>
+                </div>
                 <div class="card" id="btns-ignore">
-                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">PLANTILLA 1:1</button>
-                    <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">INFORME PDF</button>
+                    <div class="input-group"><label>Papel</label><div class="radio-group"><div class="radio-btn active" id="formatA4" onclick="setFormat('a4')">A4</div><div class="radio-btn" id="formatA3" onclick="setFormat('a3')">A3</div></div></div>
+                    <button class="btn-main" style="background:var(--workshop-green)" onclick="pdfMultiPaginado()">EXPORTAR PLANTILLA (1:1)</button>
+                    <button class="btn-main" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">EXPORTAR INFORME PDF</button>
                 </div>
                 <div class="card" style="padding:0; overflow:hidden;"><table class="data-table" id="tableBP"><thead><tr><th>PTO</th><th>GRAD</th><th>ORD (mm)</th></tr></thead><tbody></tbody></table></div>
                 <div class="canvas-wrap"><div class="canvas-label">Esquema Plantilla</div><svg id="bpSvg" viewBox="0 0 400 160"></svg></div>
@@ -105,135 +187,101 @@
         </div>
 
         <div id="tab-bayoneta" class="section">
-            <h2>Bayoneta Isométrica</h2>
+            <h2>Cálculo de Bayonetas</h2>
             <div class="card" id="form-by-ignore">
-                <label class="switch-wrap"><span style="font-weight: 800; color: #0369a1;">ACTIVAR ROLLING</span><input type="checkbox" id="checkRolling" onchange="toggleRoll()"></label>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <label class="switch-wrap"><span class="switch-label">ACTIVAR GIRADA (3D / ROLLING)</span><input type="checkbox" id="checkRolling" class="switch-checkbox" onchange="toggleRoll()"></label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div class="input-group"><label>Avance (Run)</label><input type="number" id="byRun" placeholder="mm"></div>
                     <div class="input-group"><label>Altura (Set)</label><input type="number" id="bySet" placeholder="mm"></div>
                 </div>
                 <div class="input-group" id="groupRoll" style="display:none; background:#e0f2fe; padding:10px; border-radius:10px;"><label>Desplazamiento (Roll)</label><input type="number" id="byRoll" placeholder="mm"></div>
-                <div class="input-group"><label>Radio</label><div class="radio-group">
+                <div class="input-group"><label>Radio Curvatura</label><div class="radio-group">
                     <div class="radio-btn active" id="byLR" onclick="setByRad('LR')">Largo</div>
                     <div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto</div>
                     <div class="radio-btn" id="byCust" onclick="setByRad('Cust')">Libre</div>
                 </div></div>
-                <div class="input-group" id="groupCustRad" style="display:none;"><label>Radio (mm)</label><input type="number" id="byRadVal"></div>
-                <button class="btn-main" onclick="calcBayonetaPro()">Calcular</button>
+                <div class="input-group" id="groupCustRad" style="display:none; background:#fff7ed; padding:10px; border-radius:10px; border:1px solid var(--accent);"><label>Radio Manual (mm)</label><input type="number" id="byRadVal" placeholder="Ej: 500"></div>
+                <button class="btn-main" style="margin-top:15px;" onclick="calcBayonetaPro()">Calcular Bayoneta</button>
             </div>
             <div id="resByPro" style="display:none;">
-                <div class="canvas-wrap"><div class="canvas-label">Rojo=Medida / Amarillo=Tubo</div><svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:350px;"></svg></div>
+                <div class="canvas-wrap" style="padding:10px;">
+                    <div class="canvas-label">Esquema: Rojo (Medidas) / Amarillo (Tubería)</div>
+                    <svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:350px;"></svg>
+                </div>
                 <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;"><table class="data-table">
-                    <tr><td>Ángulo</td><td id="outByAng" style="font-weight:900;">0°</td></tr>
-                    <tr><td>Recorrido</td><td id="outByTrav">0</td></tr>
-                    <tr style="background:#dcfce7;"><td>CARRETE</td><td id="outByCut" style="font-weight:900; color:#15803d;">0</td></tr>
+                    <tr><td style="text-align:left;">Ángulo Curva</td><td id="outByAng" style="font-weight:900;">0°</td></tr>
+                    <tr><td style="text-align:left;">Recorrido (C-C)</td><td id="outByTrav" style="font-weight:bold;">0</td></tr>
+                    <tr style="background:#dcfce7;"><td style="text-align:left; font-weight:800; color:#15803d;">CARRETE (CORTE)</td><td style="font-weight:900; font-size:1.4rem; color:#15803d;" id="outByCut">0</td></tr>
                 </table></div>
-                <button class="btn-main" id="btn-inf-by" style="background:var(--pdf-red);" onclick="pdfInforme()">INFORME PDF</button>
+                <button class="btn-main" id="btn-inf-by" style="background:var(--pdf-red); margin-top:8px;" onclick="pdfInforme()">EXPORTAR INFORME PDF</button>
             </div>
         </div>
 
-        <div id="tab-pesos" class="section">
-            <h2>Calculadora de Materiales</h2>
-            <div class="card">
-                <div class="input-group"><label>Material</label>
-                    <select id="pMat">
-                        <option value="CS">Acero Carbono (7.85 g/cm³)</option>
-                        <option value="SS">Acero Inoxidable (7.93 g/cm³)</option>
-                        <option value="AL">Aluminio (2.70 g/cm³)</option>
-                    </select>
-                </div>
-                <div class="input-group"><label>Unidad Diámetro</label>
-                    <div class="radio-group">
-                        <div class="radio-btn active" id="pUnitIn" onclick="togglePUnit('in')">Pulgadas (NPS)</div>
-                        <div class="radio-btn" id="pUnitMm" onclick="togglePUnit('mm')">Milímetros</div>
-                    </div>
-                </div>
-                
-                <div id="pInputIn">
-                    <div class="input-group"><label>Diámetro Nominal (NPS)</label>
-                        <select id="pNPS">
-                            <option value="2">2"</option><option value="3">3"</option><option value="4" selected>4"</option>
-                            <option value="6">6"</option><option value="8">8"</option><option value="10">10"</option>
-                            <option value="12">12"</option><option value="14">14"</option><option value="16">16"</option>
-                        </select>
-                    </div>
-                    <div class="input-group"><label>Schedule (Espesor)</label>
-                        <select id="pSch">
-                            <option value="10">Sch 10</option><option value="20">Sch 20</option>
-                            <option value="40" selected>Sch 40 (STD)</option><option value="80">Sch 80 (XS)</option>
-                            <option value="160">Sch 160</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="pInputMm" style="display:none;">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <div class="input-group"><label>OD (mm)</label><input type="number" id="pODmm" placeholder="Ext."></div>
-                        <div class="input-group"><label>Espesor (mm)</label><input type="number" id="pThickmm" placeholder="Pared"></div>
-                    </div>
-                </div>
-
-                <div class="input-group"><label>Largo (mm)</label><input type="number" id="pLen" placeholder="Longitud en milímetros"></div>
-                <button class="btn-main" onclick="calcPeso()">CALCULAR PESO</button>
-            </div>
-            
-            <div id="resP" class="card" style="display:none; text-align:center; background:#f0fdf4; border:2px solid #bbf7d0;">
-                <div style="font-size:0.8rem; color:#166534; font-weight:bold; margin-bottom:5px;">PESO TOTAL</div>
-                <div id="resPVal" style="font-size:2.5rem; font-weight:900; color:#15803d;">0 Kg</div>
-                <div id="resPDetail" style="font-size:0.8rem; color:#64748b; margin-top:5px;"></div>
-                <button class="btn-main" style="background:var(--pdf-red); margin-top:15px;" onclick="pdfInforme()">INFORME PDF</button>
-            </div>
-        </div>
-
-        <div id="tab-bridas" class="section"><h2>Bridas ASME</h2><div class="card">Módulo activo</div></div>
-        <div id="tab-codos" class="section"><h2>Avance Codos</h2><div class="card">Módulo activo</div></div>
-        <div id="tab-cargas" class="section"><h2>Izaje</h2><div id="slingList"></div></div>
+        <div id="tab-bridas" class="section"><h2>Bridas ASME</h2><div class="card"><div class="input-group"><label>NPS</label><select id="brSize"><option value="4">4"</option><option value="6">6"</option></select></div><button class="btn-main" onclick="getBrida()">Consultar</button></div><div id="brRes" class="card" style="display:none"><table class="data-table"><tr><td>OD</td><td id="brOD">0</td></tr><tr><td>BC</td><td id="brBC">0</td></tr></table></div></div>
+        <div id="tab-pesos" class="section"><h2>Pesos</h2><div class="card"><div class="input-group"><label>Largo (m)</label><input type="number" id="pL"></div><button class="btn-main" onclick="calcPeso()">Calcular</button></div><div id="resP" class="card" style="display:none; text-align:center;"><div id="resPVal">0 Kg</div></div></div>
+        <div id="tab-codos" class="section"><h2>Avance</h2><div class="card"><div class="input-group"><label>Diámetro</label><input type="number" id="coD"></div><button class="btn-main" onclick="calcCo()">Calcular</button></div><div id="resCo" class="card" style="display:none; text-align:center;"><div id="resCoVal">0 mm</div></div></div>
+        <div id="tab-cargas" class="section"><h2>Eslingas</h2><div id="slingList"></div></div>
     </div>
 </div>
 
 <script>
-    window.addEventListener('load', () => { setTimeout(() => { document.getElementById('splash-screen').style.opacity = '0'; setTimeout(() => document.getElementById('splash-screen').style.display = 'none', 800); }, 2500); });
+    window.addEventListener('load', () => { setTimeout(() => { document.getElementById('splash-screen').style.opacity = '0'; setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; }, 800); }, 3000); });
     let unitBP='in', divBP=16, exportFormat='a4', coType='LR';
-    let lastBP = { pts: [], per: 0, R_cab_mm: 0, r_ram_mm: 0, angRad: 0, margin: 0, minY_raw: 0, div: 16 };
+    let lastBP = { pts: [], per: 0, r: 0, c: 0, R_cab_mm: 0, r_ram_mm: 0, angRad: 0, unit: 'in', paso: 0, angle: 90, margin: 0, minY_raw: 0, div: 16 };
 
-    function showMsg(t){const b=document.getElementById('ui-message'); b.innerText=t; b.style.display='block'; setTimeout(()=>b.style.display='none',3000);}
-    function setTab(id,b){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(bn=>bn.classList.remove('active')); document.getElementById(id).classList.add('active'); b.classList.add('active');}
-    function setFormat(f){exportFormat=f; document.getElementById('formatA4').classList.toggle('active',f==='a4'); document.getElementById('formatA3').classList.toggle('active',f==='a3');}
-    function getOD(i){const m={"2":60.3,"4":114.3,"6":168.3,"8":219.1}; return m[i]||i*25.4;}
-    function setUn(u){unitBP=u; document.getElementById('unIn').classList.toggle('active',u==='in'); document.getElementById('unMm').classList.toggle('active',u==='mm');}
-    function setDiv(d){divBP=d; document.getElementById('div8').classList.toggle('active',d===8); document.getElementById('div16').classList.toggle('active',d===16);}
-    function setByRad(t){coType=t; document.getElementById('byLR').classList.toggle('active',t==='LR'); document.getElementById('bySR').classList.toggle('active',t==='SR'); document.getElementById('byCust').classList.toggle('active',t==='Cust'); document.getElementById('groupCustRad').style.display=(t==='Cust')?'block':'none';}
+    function showMsg(t){const b=document.getElementById('ui-message');b.innerText=t;b.style.display='block';setTimeout(()=>b.style.display='none',3000);}
+    function setTab(id,b){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(bn=>bn.classList.remove('active'));document.getElementById(id).classList.add('active');b.classList.add('active');}
+    function setFormat(f){exportFormat=f;document.getElementById('formatA4').classList.toggle('active',f==='a4');document.getElementById('formatA3').classList.toggle('active',f==='a3');}
+    function getOD(i){const m={"2":60.3,"4":114.3,"6":168.3,"8":219.1,"12":323.8};return m[i]||i*25.4;}
+    function setUn(u){unitBP=u;document.getElementById('unIn').classList.toggle('active',u==='in');document.getElementById('unMm').classList.toggle('active',u==='mm');}
+    function setDiv(d){divBP=d;document.getElementById('div8').classList.toggle('active',d===8);document.getElementById('div16').classList.toggle('active',d===16);}
+    function setByRad(t){coType=t;document.getElementById('byLR').classList.toggle('active',t==='LR');document.getElementById('bySR').classList.toggle('active',t==='SR');document.getElementById('byCust').classList.toggle('active',t==='Cust');document.getElementById('groupCustRad').style.display=(t==='Cust')?'block':'none';}
 
     // --- BOCA PEZ ---
     function calcBP(){
         let cIn=parseFloat(document.getElementById('bpC').value), rIn=parseFloat(document.getElementById('bpR').value), ang=parseFloat(document.getElementById('bpAng').value), marg=document.getElementById('bpMarg').checked?30:10;
-        if(!cIn||!rIn||!ang){showMsg("Faltan datos"); return;}
+        if(!cIn||!rIn||!ang){showMsg("Faltan datos");return;}
         let R_cab=(unitBP==='in'?getOD(cIn):cIn)/2, r_ram=(unitBP==='in'?getOD(rIn):rIn)/2, angRad=ang*Math.PI/180;
-        let per=r_ram*2*Math.PI, rawPts=[];
+        let per=r_ram*2*Math.PI, paso=per/divBP, rawPts=[];
         for(let i=0;i<=divBP;i++){
             let phi=(i*360/divBP)*Math.PI/180;
             let y=(Math.sqrt(Math.pow(R_cab,2)-Math.pow(r_ram*Math.sin(phi),2))/Math.sin(angRad))-(r_ram*Math.cos(phi)/Math.tan(angRad));
             rawPts.push(y);
         }
         let minY=Math.min(...rawPts), finalPts=rawPts.map(y=>(y-minY)+marg);
-        lastBP={per, pts:finalPts, R_cab_mm:R_cab, r_ram_mm:r_ram, angRad, minY_raw:minY, div:divBP, margin:marg};
+        lastBP={per, r:rIn, c:cIn, pts:finalPts, unit:unitBP, paso, angle:ang, margin:marg, R_cab_mm:R_cab, r_ram_mm:r_ram, angRad, minY_raw:minY, div:divBP};
         let tb=document.querySelector("#tableBP tbody"); tb.innerHTML="";
-        lastBP.pts.forEach((p,i)=> tb.innerHTML+=`<tr><td>${i}</td><td>${(i*360/divBP).toFixed(0)}°</td><td>${p.toFixed(1)}</td></tr>`);
+        lastBP.pts.forEach((p,i)=>{tb.innerHTML+=`<tr><td>${i}</td><td>${(i*360/divBP).toFixed(0)}°</td><td>${p.toFixed(1)}</td></tr>`;});
         document.getElementById('resBP').style.display='block';
-        drawTemplateSvg(); drawJointSvg(R_cab, r_ram, ang);
+        drawJointSvg(R_cab, r_ram, ang); drawTemplateSvg();
     }
     function drawTemplateSvg(){
         let svg=document.getElementById('bpSvg'), w=400, h=160, step=w/(lastBP.pts.length-1);
         let maxVal=Math.max(...lastBP.pts), scY=(h-20)/(maxVal||1), path=`M 0 ${h}`;
-        lastBP.pts.forEach((p,i)=> path+=` L ${i*step} ${h-(p*scY)}`); path+=` L 400 ${h} Z`;
+        lastBP.pts.forEach((p,i)=>{ path+=` L ${i*step} ${h-(p*scY)}`; }); path+=` L 400 ${h} Z`;
         svg.innerHTML=`<rect width="400" height="160" fill="#0f172a"/><path d="${path}" stroke="#0284c7" stroke-width="2" fill="rgba(2,132,199,0.2)"/>`;
     }
     function drawJointSvg(R, r, ang){
         const svg = document.getElementById('jointSvg'); svg.innerHTML='';
-        const scale = 110/(R*2), scR=R*scale, cx=200, cy=200, aRad=ang*Math.PI/180;
-        svg.innerHTML=`<rect width="400" height="300" fill="#0f172a"/><rect x="50" y="${cy-scR}" width="300" height="${scR*2}" fill="none" stroke="#475569" stroke-width="2"/>
-        <line x1="${cx}" y1="${cy-scR}" x2="${cx+Math.cos(aRad)*140}" y2="${cy-scR-Math.sin(aRad)*140}" stroke="#facc15" stroke-width="20" stroke-linecap="round"/>`;
+        const scale = 110/(R*2), scR=R*scale, scr=r*scale, cx=200, cy=200, aRad=ang*Math.PI/180;
+        let c=`<rect width="400" height="300" fill="#0f172a"/><rect x="50" y="${cy-scR}" width="300" height="${scR*2}" fill="none" stroke="#475569" stroke-width="2"/>`;
+        const vx=Math.cos(aRad), vy=-Math.sin(aRad), len=140;
+        const offX=scr*Math.sin(Math.PI/2-aRad), offY=scr*Math.cos(Math.PI/2-aRad);
+        c+=`<line x1="${cx-offX}" y1="${cy-offY-scR}" x2="${cx-offX+len*vx}" y2="${cy-offY-scR+len*vy}" stroke="#38bdf8" stroke-width="2"/>`;
+        c+=`<line x1="${cx+offX}" y1="${cy+offY-scR}" x2="${cx+offX+len*vx}" y2="${cy+offY-scR+len*vy}" stroke="#38bdf8" stroke-width="2"/>`;
+        svg.innerHTML=c;
     }
+
+    function getPointAt(x, pts) {
+        for(let i=0; i<pts.length-1; i++) {
+            if(pts[i].x <= x && pts[i+1].x >= x) {
+                let r = (x - pts[i].x) / (pts[i+1].x - pts[i].x);
+                return pts[i].y + (pts[i+1].y - pts[i].y) * r;
+            }
+        }
+        return pts[pts.length-1].y;
+    }
+
     function pdfMultiPaginado(){
         if(!lastBP.pts.length) return;
         document.getElementById('loading-overlay').style.display='flex';
@@ -247,7 +295,7 @@
             let pW=(exportFormat==='a3'?420:297)-40, nP=Math.ceil(lastBP.per/pW), yBase=180, mX=20;
             for(let p=0; p<nP; p++){
                 if(p>0) doc.addPage();
-                doc.text(`TIJERAS 1:1 - PÁG ${p+1}/${nP} (MADE BY XURXO)`, mX, 15);
+                doc.setFontSize(10); doc.text(`TIJERAS 1:1 - PÁG ${p+1}/${nP} (MADE BY XURXO)`, mX, 15);
                 let startX=p*pW, currentW=Math.min(pW, lastBP.per-startX);
                 doc.setDrawColor(0); doc.setLineWidth(1.0);
                 doc.line(mX, yBase, mX+currentW, yBase);
@@ -262,36 +310,55 @@
                 doc.setLineWidth(0.2); doc.setDrawColor(150);
                 let st = lastBP.per/lastBP.div;
                 for(let d=0; d<=lastBP.div; d++){
-                    let px = d*st; if(px>=startX && px<=startX+currentW){ let xF = (px-startX)+mX; doc.line(xF, yBase, xF, yBase-getPointAt(px, hd)); doc.text(`${(d*(360/lastBP.div)).toFixed(0)}°`, xF-1, yBase+3); }
+                    let px = d*st;
+                    if(px>=startX && px<=startX+currentW){
+                        let xF = (px-startX)+mX;
+                        doc.line(xF, yBase, xF, yBase-getPointAt(px, hd));
+                        doc.setFontSize(6); doc.text(`${(d*(360/lastBP.div)).toFixed(0)}°`, xF-1, yBase+3);
+                    }
                 }
             }
-            doc.save("Plantilla_Corte.pdf"); document.getElementById('loading-overlay').style.display='none';
+            doc.save(`Plantilla_Xurxo.pdf`); document.getElementById('loading-overlay').style.display='none';
         },1000);
     }
+
     async function pdfInforme(){
-        const { jsPDF } = window.jspdf; document.getElementById('loading-overlay').style.display='flex';
+        const { jsPDF } = window.jspdf;
         const scrollEl = document.getElementById('main-scroll');
+        const captureArea = document.getElementById('capture-area');
+        document.getElementById('loading-overlay').style.display='flex';
+        document.getElementById('loading-text').innerText = "CAPTURANDO INFORME...";
+        const isBP = document.getElementById('tab-bocapez').classList.contains('active');
+        const originalStyle = scrollEl.style.cssText;
         scrollEl.classList.add('pdf-exporting');
         const hideIds = ['nav-ignore', 'form-ignore', 'btns-ignore', 'form-by-ignore', 'btn-inf-by'];
         hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = 'none'; });
+
         setTimeout(async () => {
-            const canvas = await html2canvas(document.getElementById('capture-area'), { scale: 2, useCORS: true, backgroundColor: "#ffffff", scrollY: -window.scrollY });
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height*210)/canvas.width);
-            pdf.save(`Informe_Xurxo.pdf`);
-            scrollEl.classList.remove('pdf-exporting');
-            hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = (id === 'nav-ignore') ? 'grid' : 'block'; });
-            document.getElementById('loading-overlay').style.display='none';
-        }, 1200);
+            try {
+                const canvas = await html2canvas(captureArea, { scale: 2, useCORS: true, backgroundColor: "#ffffff", scrollY: -window.scrollY });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfW = 210, pdfH = (canvas.height * pdfW) / canvas.width;
+                let heightLeft = pdfH, position = 0, pageHeight = 295;
+                pdf.addImage(imgData, 'PNG', 0, position, pdfW, pdfH); heightLeft -= pageHeight;
+                while (heightLeft >= 0) { position = heightLeft - pdfH; pdf.addPage(); pdf.addImage(imgData, 'PNG', 0, position, pdfW, pdfH); heightLeft -= pageHeight; }
+                pdf.save(`Informe_${isBP?'BocaPez':'Bayoneta'}_Xurxo.pdf`);
+            } catch (err) { showMsg("Error PDF"); } finally {
+                scrollEl.classList.remove('pdf-exporting'); scrollEl.style.cssText = originalStyle;
+                hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = (id === 'nav-ignore') ? 'grid' : 'block'; });
+                document.getElementById('loading-overlay').style.display='none';
+            }
+        }, 1000);
     }
 
-    // --- BAYONETA LOGIC (RAIL V35.0) ---
-    function toggleRoll(){ document.getElementById('groupRoll').style.display=document.getElementById('checkRolling').checked?'block':'none'; }
+    // --- BAYONETAS (RAIL ROJO + TUBO AMARILLO) ---
+    function toggleRoll(){const c=document.getElementById('checkRolling').checked;document.getElementById('groupRoll').style.display=c?'block':'none';document.getElementById('byRoll').value='';}
     function calcBayonetaPro(){
         const run=parseFloat(document.getElementById('byRun').value), set=parseFloat(document.getElementById('bySet').value), isR=document.getElementById('checkRolling').checked, roll=parseFloat(document.getElementById('byRoll').value || 0);
-        if(!run || !set) {showMsg("Faltan datos"); return;}
         let effS=Math.sqrt(set*set+roll*roll);
-        let rad=(coType==='LR')?114.3*1.5:(coType==='SR'?114.3:parseFloat(document.getElementById('byRadVal').value));
+        let dB=114.3; // 4" default
+        let rad=(coType==='LR')?dB*1.5:(coType==='SR'?dB:parseFloat(document.getElementById('byRadVal').value));
         const travel=Math.sqrt(run*run+effS*effS), angR=Math.atan(effS/run), ded=rad*Math.tan(angR/2)*2, cut=travel-ded;
         document.getElementById('resByPro').style.display='block';
         document.getElementById('outByAng').innerText=(angR*180/Math.PI).toFixed(1)+"°";
@@ -299,75 +366,60 @@
         document.getElementById('outByCut').innerText=cut<0?"IMP":cut.toFixed(1) + " mm";
         drawBayonetaIso(run,set,roll);
     }
+
     function drawBayonetaIso(r, s, ro) {
         const svg = document.getElementById('bySvg'); svg.innerHTML = '';
         function tI(p) { const a = 30 * Math.PI / 180; return { x: (p.x - p.z) * Math.cos(a), y: (p.x + p.z) * Math.sin(a) - p.y }; }
-        const s0 = tI({x:0,y:0,z:0}), sR = tI({x:r,y:0,z:0}), sL = tI({x:r,y:0,z:ro}), sE = tI({x:r,y:s,z:ro});
-        const pts = [s0, sR, sL, sE, tI({x:-50,y:0,z:0}), tI({x:r+50,y:s,z:ro})];
-        const minX = Math.min(...pts.map(p=>p.x)), maxX = Math.max(...pts.map(p=>p.x)), minY = Math.min(...pts.map(p=>p.y)), maxY = Math.max(...pts.map(p=>p.y));
-        svg.setAttribute("viewBox", `${minX-100} ${minY-100} ${maxX-minX+200} ${maxY-minY+200}`);
-        let c = `<defs><marker id="arrR" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#ef4444"/></marker></defs>`;
-        c += `<path d="M${s0.x},${s0.y} L${sR.x},${sR.y} L${sL.x},${sL.y} L${sE.x},${sE.y}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="6,4" opacity="0.8"/>`;
-        [s0, sR, sL, sE].forEach(p => c += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#ef4444"/>`);
-        c += `<line x1="${tI({x:-50,y:0,z:0}).x}" y1="${tI({x:-50,y:0,z:0}).y}" x2="${s0.x}" y2="${s0.y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
-        c += `<line x1="${s0.x}" y1="${s0.y}" x2="${sE.x}" y2="${sE.y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
-        c += `<line x1="${sE.x}" y1="${sE.y}" x2="${tI({x:r+50,y:s,z:ro}).x}" y2="${tI({x:r+50,y:s,z:ro}).y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
-        function lbl(p,t){return `<text x="${p.x}" y="${p.y-10}" fill="#ef4444" font-weight="bold" font-size="14" text-anchor="middle">${t}</text>`;}
-        c+=lbl(sR,"RUN"); if(ro!=0) c+=lbl(sL,"ROLL"); c+=lbl(sE,"SET"); svg.innerHTML=c;
+        
+        // Puntos Clave
+        const start = {x:0, y:0, z:0};
+        const pRun = {x:r, y:0, z:0};    // Fin Avance
+        const pRoll = {x:r, y:0, z:ro};  // Fin Desplazamiento
+        const pSet = {x:r, y:s, z:ro};   // Fin Altura (Destino)
+
+        // Puntos de Extensiones Tubería
+        const extIn = {x:-50, y:0, z:0};
+        const extOut = {x:r+50, y:s, z:ro};
+
+        const s0 = tI(start), sR = tI(pRun), sL = tI(pRoll), sE = tI(pSet);
+        const sIn = tI(extIn), sOut = tI(extOut);
+
+        const pts = [s0, sR, sL, sE, sIn, sOut];
+        const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x));
+        const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
+        const pad = 120;
+        svg.setAttribute("viewBox", `${minX - pad} ${minY - pad} ${maxX - minX + pad * 2} ${maxY - minY + pad * 2}`);
+
+        let content = `<defs><marker id="arrR" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#ef4444"/></marker></defs>`;
+        
+        // 1. EL RAIL ROJO (Camino de medición)
+        content += `<path d="M${s0.x},${s0.y} L${sR.x},${sR.y} L${sL.x},${sL.y} L${sE.x},${sE.y}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="6,4" opacity="0.8"/>`;
+        // Puntos rojos
+        [s0, sR, sL, sE].forEach(p => content += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#ef4444"/>`);
+
+        // 2. TUBERÍA AMARILLA (Realidad con Entradas/Salidas)
+        // Tramo Entrada
+        content += `<line x1="${sIn.x}" y1="${sIn.y}" x2="${s0.x}" y2="${s0.y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
+        // Tramo Diagonal (Hipotenusa)
+        content += `<line x1="${s0.x}" y1="${s0.y}" x2="${sE.x}" y2="${sE.y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
+        // Tramo Salida
+        content += `<line x1="${sE.x}" y1="${sE.y}" x2="${sOut.x}" y2="${sOut.y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
+
+        // Etiquetas
+        function lbl(p, t, c) { return `<text x="${p.x}" y="${p.y-10}" fill="${c}" font-weight="bold" font-size="14" text-anchor="middle">${t}</text>`; }
+        content += lbl(sR, "RUN", "#ef4444");
+        if(ro!=0) content += lbl(sL, "ROLL", "#ef4444");
+        content += lbl(sE, "SET", "#ef4444");
+
+        svg.innerHTML = content;
     }
 
-    // --- PESOS LOGIC (NUEVO) ---
-    let pUnit='in';
-    const pipeData = {
-        "2": {od:60.3, sch:{"10":2.77,"20":2.77,"40":3.91,"80":5.54,"160":8.74}},
-        "3": {od:88.9, sch:{"10":3.05,"20":3.05,"40":5.49,"80":7.62,"160":11.13}},
-        "4": {od:114.3, sch:{"10":3.05,"20":3.05,"40":6.02,"80":8.56,"160":13.49}},
-        "6": {od:168.3, sch:{"10":3.4,"20":3.4,"40":7.11,"80":10.97,"160":18.26}},
-        "8": {od:219.1, sch:{"10":3.76,"20":6.35,"40":8.18,"80":12.7,"160":23.01}},
-        "10": {od:273.0, sch:{"10":4.19,"20":6.35,"40":9.27,"80":15.09,"160":28.58}},
-        "12": {od:323.8, sch:{"10":4.57,"20":6.35,"40":10.31,"80":17.48,"160":33.32}},
-        "14": {od:355.6, sch:{"10":6.35,"20":7.92,"40":11.13,"80":19.05,"160":35.71}},
-        "16": {od:406.4, sch:{"10":6.35,"20":7.92,"40":12.7,"80":21.44,"160":40.49}}
-    };
-    const densities = {"CS":7.85, "SS":7.93, "AL":2.70};
-
-    function togglePUnit(u){
-        pUnit=u; document.getElementById('pUnitIn').classList.toggle('active',u==='in'); document.getElementById('pUnitMm').classList.toggle('active',u==='mm');
-        document.getElementById('pInputIn').style.display=u==='in'?'block':'none'; document.getElementById('pInputMm').style.display=u==='mm'?'block':'none';
-    }
-
-    function calcPeso(){
-        const mat = document.getElementById('pMat').value;
-        const den = densities[mat];
-        const lenMm = parseFloat(document.getElementById('pLen').value);
-        if(!lenMm){showMsg("Falta Largo"); return;}
-
-        let od, thick;
-        if(pUnit==='in'){
-            const nps = document.getElementById('pNPS').value;
-            const sch = document.getElementById('pSch').value;
-            if(!pipeData[nps]){showMsg("Error Datos NPS"); return;}
-            od = pipeData[nps].od;
-            thick = pipeData[nps].sch[sch] || pipeData[nps].sch["40"]; // Fallback STD
-        } else {
-            od = parseFloat(document.getElementById('pODmm').value);
-            thick = parseFloat(document.getElementById('pThickmm').value);
-            if(!od || !thick){showMsg("Faltan medidas"); return;}
-        }
-
-        // Calculation: Vol = PI * (OD - t) * t * L * density
-        // Units: OD(mm), t(mm), L(mm), Den(g/cm3)
-        // Convert everything to cm for easier mass calc
-        const odCm = od/10; const tCm = thick/10; const lCm = lenMm/10;
-        const volCm3 = Math.PI * (odCm - tCm) * tCm * lCm;
-        const weightKg = (volCm3 * den) / 1000;
-
-        document.getElementById('resP').style.display='block';
-        document.getElementById('resPVal').innerText = weightKg.toFixed(2) + " Kg";
-        document.getElementById('resPDetail').innerText = `${mat} | OD: ${od}mm | Esp: ${thick}mm | L: ${lenMm}mm`;
-    }
-
-    document.getElementById('slingList').innerHTML=`Violeta 1T, Verde 2T, Amarillo 3T`;
+    const dbB={"150":{"4":{od:228.6,bc:190.5}}};
+    function getBrida(){let s=document.getElementById('brSize').value,d=dbB["150"][s];if(d){document.getElementById('brRes').style.display='block';document.getElementById('brOD').innerText=d.od;document.getElementById('brBC').innerText=d.bc;}}
+    function calcPeso(){document.getElementById('resP').style.display='block';document.getElementById('resPVal').innerText="Cálculo estándar";}
+    function calcCo(){document.getElementById('resCo').style.display='block';document.getElementById('resCoVal').innerText="Avance estándar";}
+    const sl=[{c:'#7c3aed',n:'VIOLETA',t:1},{c:'#16a34a',n:'VERDE',t:2},{c:'#facc15',n:'AMARILLO',t:3}];
+    document.getElementById('slingList').innerHTML=sl.map(s=>`<div style="display:flex; gap:10px; margin-bottom:5px;"><div style="width:20px;height:20px;background:${s.c}"></div>${s.n} - ${s.t}T</div>`).join('');
 </script>
 </body>
 </html>
