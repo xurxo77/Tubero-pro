@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v35.0</title>
+    <title>XURXO - Tubero Pro Elite v35.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -39,6 +39,7 @@
             text-transform: uppercase; margin-bottom: 30px; border-bottom: 2px solid var(--accent);
             padding-bottom: 5px; display: inline-block;
         }
+        .splash-version { font-family: monospace; color: var(--text-light); font-size: 0.8rem; opacity: 0.7; }
 
         /* --- APP CONTAINER --- */
         .app-container {
@@ -120,7 +121,7 @@
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
     <div class="splash-author">MADE BY XURXO</div>
-    <div class="splash-version">v35.0 (RAIL EDITION)</div>
+    <div class="splash-version">v35.1 (RAIL + MATERIALES)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
@@ -217,8 +218,60 @@
             </div>
         </div>
 
+        <div id="tab-pesos" class="section">
+            <h2>Calculadora de Materiales</h2>
+            <div class="card">
+                <div class="input-group"><label>Material</label>
+                    <select id="pMat">
+                        <option value="CS">Acero Carbono (7.85 g/cm³)</option>
+                        <option value="SS">Acero Inoxidable (7.93 g/cm³)</option>
+                        <option value="AL">Aluminio (2.70 g/cm³)</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>Unidad Diámetro</label>
+                    <div class="radio-group">
+                        <div class="radio-btn active" id="pUnitIn" onclick="togglePUnit('in')">Pulgadas (NPS)</div>
+                        <div class="radio-btn" id="pUnitMm" onclick="togglePUnit('mm')">Milímetros</div>
+                    </div>
+                </div>
+                
+                <div id="pInputIn">
+                    <div class="input-group"><label>Diámetro Nominal (NPS)</label>
+                        <select id="pNPS">
+                            <option value="2">2"</option><option value="3">3"</option><option value="4" selected>4"</option>
+                            <option value="6">6"</option><option value="8">8"</option><option value="10">10"</option>
+                            <option value="12">12"</option><option value="14">14"</option><option value="16">16"</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label>Schedule (Espesor)</label>
+                        <select id="pSch">
+                            <option value="10">Sch 10</option><option value="20">Sch 20</option>
+                            <option value="40" selected>Sch 40 (STD)</option><option value="80">Sch 80 (XS)</option>
+                            <option value="160">Sch 160</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="pInputMm" style="display:none;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div class="input-group"><label>OD (mm)</label><input type="number" id="pODmm" placeholder="Ext."></div>
+                        <div class="input-group"><label>Espesor (mm)</label><input type="number" id="pThickmm" placeholder="Pared"></div>
+                    </div>
+                </div>
+
+                <div class="input-group"><label>Largo (mm)</label><input type="number" id="pLen" placeholder="Longitud en milímetros"></div>
+                <button class="btn-main" onclick="calcPeso()">CALCULAR PESO</button>
+            </div>
+            
+            <div id="resP" class="card" style="display:none; text-align:center; background:#f0fdf4; border:2px solid #bbf7d0;">
+                <div style="font-size:0.8rem; color:#166534; font-weight:bold; margin-bottom:5px;">PESO TOTAL</div>
+                <div id="resPVal" style="font-size:2.5rem; font-weight:900; color:#15803d;">0 Kg</div>
+                <div id="resPDetail" style="font-size:0.8rem; color:#64748b; margin-top:5px;"></div>
+                <button class="btn-main" style="background:var(--pdf-red); margin-top:15px;" onclick="pdfInforme()">INFORME PDF</button>
+            </div>
+        </div>
+
         <div id="tab-bridas" class="section"><h2>Bridas ASME</h2><div class="card"><div class="input-group"><label>NPS</label><select id="brSize"><option value="4">4"</option><option value="6">6"</option></select></div><button class="btn-main" onclick="getBrida()">Consultar</button></div><div id="brRes" class="card" style="display:none"><table class="data-table"><tr><td>OD</td><td id="brOD">0</td></tr><tr><td>BC</td><td id="brBC">0</td></tr></table></div></div>
-        <div id="tab-pesos" class="section"><h2>Pesos</h2><div class="card"><div class="input-group"><label>Largo (m)</label><input type="number" id="pL"></div><button class="btn-main" onclick="calcPeso()">Calcular</button></div><div id="resP" class="card" style="display:none; text-align:center;"><div id="resPVal">0 Kg</div></div></div>
         <div id="tab-codos" class="section"><h2>Avance</h2><div class="card"><div class="input-group"><label>Diámetro</label><input type="number" id="coD"></div><button class="btn-main" onclick="calcCo()">Calcular</button></div><div id="resCo" class="card" style="display:none; text-align:center;"><div id="resCoVal">0 mm</div></div></div>
         <div id="tab-cargas" class="section"><h2>Eslingas</h2><div id="slingList"></div></div>
     </div>
@@ -352,7 +405,7 @@
         }, 1000);
     }
 
-    // --- BAYONETAS (RAIL ROJO + TUBO AMARILLO) ---
+    // --- BAYONETAS (RAIL ROJO + TUBO AMARILLO V35.0) ---
     function toggleRoll(){const c=document.getElementById('checkRolling').checked;document.getElementById('groupRoll').style.display=c?'block':'none';document.getElementById('byRoll').value='';}
     function calcBayonetaPro(){
         const run=parseFloat(document.getElementById('byRun').value), set=parseFloat(document.getElementById('bySet').value), isR=document.getElementById('checkRolling').checked, roll=parseFloat(document.getElementById('byRoll').value || 0);
@@ -414,10 +467,59 @@
         svg.innerHTML = content;
     }
 
+    // --- NUEVA LÓGICA DE PESOS (V35.1) ---
+    let pUnit='in';
+    const pipeData = {
+        "2": {od:60.3, sch:{"10":2.77,"20":2.77,"40":3.91,"80":5.54,"160":8.74}},
+        "3": {od:88.9, sch:{"10":3.05,"20":3.05,"40":5.49,"80":7.62,"160":11.13}},
+        "4": {od:114.3, sch:{"10":3.05,"20":3.05,"40":6.02,"80":8.56,"160":13.49}},
+        "6": {od:168.3, sch:{"10":3.4,"20":3.4,"40":7.11,"80":10.97,"160":18.26}},
+        "8": {od:219.1, sch:{"10":3.76,"20":6.35,"40":8.18,"80":12.7,"160":23.01}},
+        "10": {od:273.0, sch:{"10":4.19,"20":6.35,"40":9.27,"80":15.09,"160":28.58}},
+        "12": {od:323.8, sch:{"10":4.57,"20":6.35,"40":10.31,"80":17.48,"160":33.32}},
+        "14": {od:355.6, sch:{"10":6.35,"20":7.92,"40":11.13,"80":19.05,"160":35.71}},
+        "16": {od:406.4, sch:{"10":6.35,"20":7.92,"40":12.7,"80":21.44,"160":40.49}}
+    };
+    const densities = {"CS":7.85, "SS":7.93, "AL":2.70};
+
+    function togglePUnit(u){
+        pUnit=u; document.getElementById('pUnitIn').classList.toggle('active',u==='in'); document.getElementById('pUnitMm').classList.toggle('active',u==='mm');
+        document.getElementById('pInputIn').style.display=u==='in'?'block':'none'; document.getElementById('pInputMm').style.display=u==='mm'?'block':'none';
+    }
+
+    function calcPeso(){
+        const mat = document.getElementById('pMat').value;
+        const den = densities[mat];
+        const lenMm = parseFloat(document.getElementById('pLen').value);
+        if(!lenMm){showMsg("Falta Largo"); return;}
+
+        let od, thick;
+        if(pUnit==='in'){
+            const nps = document.getElementById('pNPS').value;
+            const sch = document.getElementById('pSch').value;
+            if(!pipeData[nps]){showMsg("Error Datos NPS"); return;}
+            od = pipeData[nps].od;
+            thick = pipeData[nps].sch[sch] || pipeData[nps].sch["40"]; // Fallback STD
+        } else {
+            od = parseFloat(document.getElementById('pODmm').value);
+            thick = parseFloat(document.getElementById('pThickmm').value);
+            if(!od || !thick){showMsg("Faltan medidas"); return;}
+        }
+
+        // Cálculo Volumen Material = PI * (OD - t) * t * L
+        // Densidad está en g/cm3. Convertimos dimensiones a cm.
+        const odCm = od/10; const tCm = thick/10; const lCm = lenMm/10;
+        const volCm3 = Math.PI * (odCm - tCm) * tCm * lCm;
+        const weightKg = (volCm3 * den) / 1000;
+
+        document.getElementById('resP').style.display='block';
+        document.getElementById('resPVal').innerText = weightKg.toFixed(2) + " Kg";
+        document.getElementById('resPDetail').innerText = `${mat} | OD: ${od}mm | Esp: ${thick}mm | L: ${lenMm}mm`;
+    }
+
     const dbB={"150":{"4":{od:228.6,bc:190.5}}};
     function getBrida(){let s=document.getElementById('brSize').value,d=dbB["150"][s];if(d){document.getElementById('brRes').style.display='block';document.getElementById('brOD').innerText=d.od;document.getElementById('brBC').innerText=d.bc;}}
-    function calcPeso(){document.getElementById('resP').style.display='block';document.getElementById('resPVal').innerText="Cálculo estándar";}
-    function calcCo(){document.getElementById('resCo').style.display='block';document.getElementById('resCoVal').innerText="Avance estándar";}
+    function calcCo(){document.getElementById('resCo').style.display='block';document.getElementById('resCoVal').innerText="Avance: " + (parseFloat(document.getElementById('coD').value)*38.1).toFixed(1) + "mm";}
     const sl=[{c:'#7c3aed',n:'VIOLETA',t:1},{c:'#16a34a',n:'VERDE',t:2},{c:'#facc15',n:'AMARILLO',t:3}];
     document.getElementById('slingList').innerHTML=sl.map(s=>`<div style="display:flex; gap:10px; margin-bottom:5px;"><div style="width:20px;height:20px;background:${s.c}"></div>${s.n} - ${s.t}T</div>`).join('');
 </script>
