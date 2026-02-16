@@ -4,20 +4,14 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XURXO - Tubero Pro Elite v33.0</title>
+    <title>XURXO - Tubero Pro Elite v35.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --bg-body: #0f172a;
-            --primary: #1e293b;
-            --accent: #f59e0b;
-            --blue-pro: #0284c7;
-            --text-main: #334155;
-            --text-light: #94a3b8;
-            --workshop-green: #059669;
-            --pdf-red: #ef4444;
-            --error-red: #b91c1c;
+            --bg-body: #0f172a; --primary: #1e293b; --accent: #f59e0b;
+            --blue-pro: #0284c7; --text-main: #334155; --text-light: #94a3b8;
+            --workshop-green: #059669; --pdf-red: #ef4444; --error-red: #b91c1c;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
@@ -126,14 +120,14 @@
 <div id="splash-screen">
     <div class="splash-logo">TUBERO PRO</div>
     <div class="splash-author">MADE BY XURXO</div>
-    <div class="splash-version">v33.0 (TALLER EDITION)</div>
+    <div class="splash-version">v35.0 (RAIL EDITION)</div>
 </div>
 
 <div id="ui-message">Aviso</div>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div id="loading-text" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">PROCESANDO...</div>
+    <div id="loading-text" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">PROCESANDO</div>
 </div>
 
 <div class="app-container" id="capture-area">
@@ -197,10 +191,10 @@
             <div class="card" id="form-by-ignore">
                 <label class="switch-wrap"><span class="switch-label">ACTIVAR GIRADA (3D / ROLLING)</span><input type="checkbox" id="checkRolling" class="switch-checkbox" onchange="toggleRoll()"></label>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                    <div class="input-group"><label style="color:#2563eb;">Avance (Run)</label><input type="number" id="byRun" placeholder="mm"></div>
-                    <div class="input-group"><label style="color:#dc2626;">Altura (Set)</label><input type="number" id="bySet" placeholder="mm"></div>
+                    <div class="input-group"><label>Avance (Run)</label><input type="number" id="byRun" placeholder="mm"></div>
+                    <div class="input-group"><label>Altura (Set)</label><input type="number" id="bySet" placeholder="mm"></div>
                 </div>
-                <div class="input-group" id="groupRoll" style="display:none; background:#e0f2fe; padding:10px; border-radius:10px;"><label style="color:#059669;">Desplazamiento (Roll)</label><input type="number" id="byRoll" placeholder="mm"></div>
+                <div class="input-group" id="groupRoll" style="display:none; background:#e0f2fe; padding:10px; border-radius:10px;"><label>Desplazamiento (Roll)</label><input type="number" id="byRoll" placeholder="mm"></div>
                 <div class="input-group"><label>Radio Curvatura</label><div class="radio-group">
                     <div class="radio-btn active" id="byLR" onclick="setByRad('LR')">Largo</div>
                     <div class="radio-btn" id="bySR" onclick="setByRad('SR')">Corto</div>
@@ -210,7 +204,10 @@
                 <button class="btn-main" style="margin-top:15px;" onclick="calcBayonetaPro()">Calcular Bayoneta</button>
             </div>
             <div id="resByPro" style="display:none;">
-                <div class="canvas-wrap" style="padding:10px;"><div class="canvas-label">Isométrica de Tubería</div><svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:350px;"></svg></div>
+                <div class="canvas-wrap" style="padding:10px;">
+                    <div class="canvas-label">Esquema: Rojo (Medidas) / Amarillo (Tubería)</div>
+                    <svg id="bySvg" style="width:100%; height:auto; background:#1e293b; border-radius:10px; min-height:350px;"></svg>
+                </div>
                 <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;"><table class="data-table">
                     <tr><td style="text-align:left;">Ángulo Curva</td><td id="outByAng" style="font-weight:900;">0°</td></tr>
                     <tr><td style="text-align:left;">Recorrido (C-C)</td><td id="outByTrav" style="font-weight:bold;">0</td></tr>
@@ -298,7 +295,7 @@
             let pW=(exportFormat==='a3'?420:297)-40, nP=Math.ceil(lastBP.per/pW), yBase=180, mX=20;
             for(let p=0; p<nP; p++){
                 if(p>0) doc.addPage();
-                doc.text(`CORTE TIJERAS 1:1 - PÁG ${p+1}/${nP}`, mX, 15);
+                doc.setFontSize(10); doc.text(`TIJERAS 1:1 - PÁG ${p+1}/${nP} (MADE BY XURXO)`, mX, 15);
                 let startX=p*pW, currentW=Math.min(pW, lastBP.per-startX);
                 doc.setDrawColor(0); doc.setLineWidth(1.0);
                 doc.line(mX, yBase, mX+currentW, yBase);
@@ -321,11 +318,10 @@
                     }
                 }
             }
-            doc.save("Plantilla_Corte.pdf"); document.getElementById('loading-overlay').style.display='none';
+            doc.save(`Plantilla_Xurxo.pdf`); document.getElementById('loading-overlay').style.display='none';
         },1000);
     }
 
-    // --- INFORME PDF COMPLETO ---
     async function pdfInforme(){
         const { jsPDF } = window.jspdf;
         const scrollEl = document.getElementById('main-scroll');
@@ -344,8 +340,10 @@
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfW = 210, pdfH = (canvas.height * pdfW) / canvas.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
-                pdf.save(`Informe_Xurxo.pdf`);
+                let heightLeft = pdfH, position = 0, pageHeight = 295;
+                pdf.addImage(imgData, 'PNG', 0, position, pdfW, pdfH); heightLeft -= pageHeight;
+                while (heightLeft >= 0) { position = heightLeft - pdfH; pdf.addPage(); pdf.addImage(imgData, 'PNG', 0, position, pdfW, pdfH); heightLeft -= pageHeight; }
+                pdf.save(`Informe_${isBP?'BocaPez':'Bayoneta'}_Xurxo.pdf`);
             } catch (err) { showMsg("Error PDF"); } finally {
                 scrollEl.classList.remove('pdf-exporting'); scrollEl.style.cssText = originalStyle;
                 hideIds.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = (id === 'nav-ignore') ? 'grid' : 'block'; });
@@ -354,7 +352,7 @@
         }, 1000);
     }
 
-    // --- BAYONETAS ---
+    // --- BAYONETAS (RAIL ROJO + TUBO AMARILLO) ---
     function toggleRoll(){const c=document.getElementById('checkRolling').checked;document.getElementById('groupRoll').style.display=c?'block':'none';document.getElementById('byRoll').value='';}
     function calcBayonetaPro(){
         const run=parseFloat(document.getElementById('byRun').value), set=parseFloat(document.getElementById('bySet').value), isR=document.getElementById('checkRolling').checked, roll=parseFloat(document.getElementById('byRoll').value || 0);
@@ -366,45 +364,60 @@
         document.getElementById('outByAng').innerText=(angR*180/Math.PI).toFixed(1)+"°";
         document.getElementById('outByTrav').innerText=travel.toFixed(1) + " mm";
         document.getElementById('outByCut').innerText=cut<0?"IMP":cut.toFixed(1) + " mm";
-        drawBayonetaIso(run,set,roll,cut);
+        drawBayonetaIso(run,set,roll);
     }
 
-    // --- MOTOR ISOMÉTRICO SIMPLIFICADO (SOLUCIÓN AL "COSA RARA") ---
-    function drawBayonetaIso(r, s, ro, cu) {
+    function drawBayonetaIso(r, s, ro) {
         const svg = document.getElementById('bySvg'); svg.innerHTML = '';
         function tI(p) { const a = 30 * Math.PI / 180; return { x: (p.x - p.z) * Math.cos(a), y: (p.x + p.z) * Math.sin(a) - p.y }; }
-        const p0 = { x: 0, y: 0, z: 0 }, pR = { x: r, y: 0, z: 0 }, pC = { x: r, y: 0, z: ro }, pE = { x: r, y: s, z: ro };
-        const s0 = tI(p0), sr = tI(pR), sc = tI(pC), se = tI(pE);
-        const pts = [s0, sr, sc, se];
+        
+        // Puntos Clave
+        const start = {x:0, y:0, z:0};
+        const pRun = {x:r, y:0, z:0};    // Fin Avance
+        const pRoll = {x:r, y:0, z:ro};  // Fin Desplazamiento
+        const pSet = {x:r, y:s, z:ro};   // Fin Altura (Destino)
+
+        // Puntos de Extensiones Tubería
+        const extIn = {x:-50, y:0, z:0};
+        const extOut = {x:r+50, y:s, z:ro};
+
+        const s0 = tI(start), sR = tI(pRun), sL = tI(pRoll), sE = tI(pSet);
+        const sIn = tI(extIn), sOut = tI(extOut);
+
+        const pts = [s0, sR, sL, sE, sIn, sOut];
         const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x));
         const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
-        const w = maxX - minX, h = maxY - minY, pad = 120;
-        svg.setAttribute("viewBox", `${minX - pad} ${minY - pad} ${w + pad * 2} ${h + pad * 2}`);
+        const pad = 120;
+        svg.setAttribute("viewBox", `${minX - pad} ${minY - pad} ${maxX - minX + pad * 2} ${maxY - minY + pad * 2}`);
 
-        let content = `<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>`;
-        // Líneas de referencia
-        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="5,5"/>`;
-        // Tubería sólida
-        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#facc15" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>`;
-        // Línea de centro (Eje)
-        content += `<path d="M${s0.x},${s0.y} L${sr.x},${sr.y} L${sc.x},${sc.y} L${se.x},${se.y}" fill="none" stroke="#000" stroke-width="1.5" stroke-dasharray="15,5,2,5"/>`;
+        let content = `<defs><marker id="arrR" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#ef4444"/></marker></defs>`;
         
-        // Etiquetas de Cotas (RUN, ROLL, SET)
-        function label(p1, p2, text, color, offset) {
-            const mx = (p1.x+p2.x)/2 + offset.x, my = (p1.y+p2.y)/2 + offset.y;
-            return `<line x1="${p1.x+offset.x}" y1="${p1.y+offset.y}" x2="${p2.x+offset.x}" y2="${p2.y+offset.y}" stroke="${color}" stroke-width="2" marker-end="url(#arr)"/><text x="${mx}" y="${my-10}" fill="${color}" font-size="14" font-weight="bold" text-anchor="middle">${text}</text>`;
-        }
-        content += label(s0, sr, `RUN: ${r}`, "#3b82f6", {x:0, y:40});
-        if(ro != 0) content += label(sr, sc, `ROLL: ${ro}`, "#10b981", {x:40, y:0});
-        content += label(sc, se, `SET: ${s}`, "#ef4444", {x:-40, y:0});
-        
+        // 1. EL RAIL ROJO (Camino de medición)
+        content += `<path d="M${s0.x},${s0.y} L${sR.x},${sR.y} L${sL.x},${sL.y} L${sE.x},${sE.y}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="6,4" opacity="0.8"/>`;
+        // Puntos rojos
+        [s0, sR, sL, sE].forEach(p => content += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#ef4444"/>`);
+
+        // 2. TUBERÍA AMARILLA (Realidad con Entradas/Salidas)
+        // Tramo Entrada
+        content += `<line x1="${sIn.x}" y1="${sIn.y}" x2="${s0.x}" y2="${s0.y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
+        // Tramo Diagonal (Hipotenusa)
+        content += `<line x1="${s0.x}" y1="${s0.y}" x2="${sE.x}" y2="${sE.y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
+        // Tramo Salida
+        content += `<line x1="${sE.x}" y1="${sE.y}" x2="${sOut.x}" y2="${sOut.y}" stroke="#facc15" stroke-width="18" stroke-linecap="round"/>`;
+
+        // Etiquetas
+        function lbl(p, t, c) { return `<text x="${p.x}" y="${p.y-10}" fill="${c}" font-weight="bold" font-size="14" text-anchor="middle">${t}</text>`; }
+        content += lbl(sR, "RUN", "#ef4444");
+        if(ro!=0) content += lbl(sL, "ROLL", "#ef4444");
+        content += lbl(sE, "SET", "#ef4444");
+
         svg.innerHTML = content;
     }
 
     const dbB={"150":{"4":{od:228.6,bc:190.5}}};
     function getBrida(){let s=document.getElementById('brSize').value,d=dbB["150"][s];if(d){document.getElementById('brRes').style.display='block';document.getElementById('brOD').innerText=d.od;document.getElementById('brBC').innerText=d.bc;}}
-    function calcPeso(){document.getElementById('resP').style.display='block';document.getElementById('resPVal').innerText="Aprox 16 Kg/m";}
-    function calcCo(){document.getElementById('resCo').style.display='block';document.getElementById('resCoVal').innerText="Avance: 152 mm";}
+    function calcPeso(){document.getElementById('resP').style.display='block';document.getElementById('resPVal').innerText="Cálculo estándar";}
+    function calcCo(){document.getElementById('resCo').style.display='block';document.getElementById('resCoVal').innerText="Avance estándar";}
     const sl=[{c:'#7c3aed',n:'VIOLETA',t:1},{c:'#16a34a',n:'VERDE',t:2},{c:'#facc15',n:'AMARILLO',t:3}];
     document.getElementById('slingList').innerHTML=sl.map(s=>`<div style="display:flex; gap:10px; margin-bottom:5px;"><div style="width:20px;height:20px;background:${s.c}"></div>${s.n} - ${s.t}T</div>`).join('');
 </script>
